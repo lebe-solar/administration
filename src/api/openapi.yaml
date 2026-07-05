@@ -1,0 +1,556 @@
+openapi: 3.0.0
+info:
+  description: LeBe Solarenergie — Product Administration API
+  version: 1.0.0
+  title: LeBe Solarenergie Administration API
+
+components:
+  schemas:
+    Category:
+      type: object
+      properties:
+        key:
+          type: string
+          enum: [Solarmodule, Wechselrichter, Heimspeicher, Ladestationen, Heizsysteme]
+        en:
+          type: string
+        prefix:
+          type: string
+        icon:
+          type: string
+    Manufacturer:
+      type: object
+      required: [name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        logo:
+          type: string
+          nullable: true
+        link:
+          type: string
+        linkedProducts:
+          type: integer
+    Product:
+      type: object
+      required: [id, category, Header, manufacturer_id, Status]
+      properties:
+        id:
+          type: string
+          example: MOD-001
+        category:
+          type: string
+          enum: [Solarmodule, Wechselrichter, Heimspeicher, Ladestationen, Heizsysteme]
+        Header:
+          type: string
+        Beschreibung:
+          type: string
+        Hersteller:
+          type: string
+        manufacturer_id:
+          type: string
+        Garantie:
+          type: string
+        Power:
+          type: number
+          nullable: true
+        Unit:
+          type: string
+        Spezifikation:
+          type: string
+          nullable: true
+          description: URL of the uploaded specification PDF
+        hasSpec:
+          type: boolean
+        Logo:
+          type: string
+          nullable: true
+        Status:
+          type: string
+          enum: [Active, Draft, Hidden]
+        panelHeightMeters:
+          type: number
+          nullable: true
+        panelWidthMeters:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    OfferItem:
+      type: object
+      required: [id, name, quantity, price, descriptionLines]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+        descriptionLines:
+          type: array
+          items:
+            type: string
+        updatedAt:
+          type: string
+          format: date-time
+    Offer:
+      type: object
+      required: [id, title, status]
+      properties:
+        id:
+          type: string
+          example: OFF-005
+        title:
+          type: string
+        subtitle:
+          type: string
+        description:
+          type: string
+        conditions:
+          type: string
+        validUntil:
+          type: string
+          format: date
+        designedFor:
+          type: string
+        system:
+          type: string
+        price:
+          type: string
+        priceAmount:
+          type: number
+          nullable: true
+        priceCurrency:
+          type: string
+        priceLabel:
+          type: string
+        link:
+          type: string
+        slug:
+          type: string
+        previewImage:
+          type: string
+          nullable: true
+        products:
+          type: object
+          properties:
+            solarModuleId: { type: string, nullable: true }
+            solarModuleCount: { type: integer }
+            inverterId: { type: string, nullable: true }
+            inverterCount: { type: integer }
+            storageId: { type: string, nullable: true }
+            storageCount: { type: integer }
+            wallboxId: { type: string, nullable: true }
+            wallboxCount: { type: integer }
+            heatingSystemId: { type: string, nullable: true }
+            heatingSystemCount: { type: integer }
+        inclusive:
+          type: array
+          items:
+            $ref: "#/components/schemas/OfferItem"
+        allowChanges:
+          type: boolean
+        status:
+          type: string
+          enum: [Active, Draft, Hidden]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    UploadResult:
+      type: object
+      properties:
+        url:
+          type: string
+        filename:
+          type: string
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+  parameters:
+    id:
+      in: path
+      required: true
+      name: id
+      description: Resource id
+      schema:
+        type: string
+
+paths:
+  /categories:
+    get:
+      summary: List product categories
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /manufacturers:
+    get:
+      summary: List manufacturers
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Manufacturer"
+    post:
+      summary: Create a manufacturer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Manufacturer"
+      responses:
+        "201":
+          description: Created
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /manufacturers/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a manufacturer
+      responses:
+        "200":
+          description: Success
+        "404":
+          description: Not found
+    put:
+      summary: Update a manufacturer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Manufacturer"
+      responses:
+        "200":
+          description: Success
+        "422":
+          description: Validation error
+    delete:
+      summary: Delete a manufacturer (blocked while products are linked)
+      responses:
+        "204":
+          description: Deleted
+        "409":
+          description: Manufacturer has linked products
+
+  /products:
+    get:
+      summary: List products
+      parameters:
+        - in: query
+          name: category
+          schema: { type: string }
+        - in: query
+          name: manufacturer_id
+          schema: { type: string }
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      summary: Create a product
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+      responses:
+        "201":
+          description: Created
+        "422":
+          description: Validation error
+
+  /products/next-id:
+    get:
+      summary: Generate the next auto-numbered product id for a category
+      parameters:
+        - in: query
+          name: category
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Success
+
+  /products/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a product
+      responses:
+        "200":
+          description: Success
+        "404":
+          description: Not found
+    put:
+      summary: Update a product (renaming the id recreates the document)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Product"
+      responses:
+        "200":
+          description: Success
+        "422":
+          description: Validation error
+    delete:
+      summary: Delete a product
+      responses:
+        "204":
+          description: Deleted
+
+  /offers:
+    get:
+      summary: List offers
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: price
+          schema: { type: string, enum: [lt15, 15to30, gt30] }
+        - in: query
+          name: valid
+          schema: { type: string, enum: [active, expired] }
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Offer"
+    post:
+      summary: Create an offer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Offer"
+      responses:
+        "201":
+          description: Created
+        "422":
+          description: Validation error
+
+  /offers/next-id:
+    get:
+      summary: Generate the next auto-numbered offer id
+      responses:
+        "200":
+          description: Success
+
+  /offers/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get an offer
+      responses:
+        "200":
+          description: Success
+        "404":
+          description: Not found
+    put:
+      summary: Update an offer (renaming the id recreates the document)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Offer"
+      responses:
+        "200":
+          description: Success
+        "422":
+          description: Validation error
+    delete:
+      summary: Delete an offer
+      responses:
+        "204":
+          description: Deleted
+
+  /offers/{id}/duplicate:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    post:
+      summary: Duplicate an offer as a new Draft
+      responses:
+        "201":
+          description: Created
+
+  /offer-components:
+    get:
+      summary: List reusable offer service components (Leistungspositionen)
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OfferItem"
+    post:
+      summary: Create a reusable offer component
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfferItem"
+      responses:
+        "201":
+          description: Created
+        "422":
+          description: Validation error
+
+  /offer-components/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a reusable offer component
+      responses:
+        "200":
+          description: Success
+        "404":
+          description: Not found
+    put:
+      summary: Update a reusable offer component
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OfferItem"
+      responses:
+        "200":
+          description: Success
+        "422":
+          description: Validation error
+    delete:
+      summary: Delete a reusable offer component
+      responses:
+        "204":
+          description: Deleted
+
+  /offer-components/{id}/duplicate:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    post:
+      summary: Duplicate a reusable offer component
+      responses:
+        "201":
+          description: Created
+
+  /uploads/pdf:
+    post:
+      summary: Upload a specification PDF to Blob Storage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResult"
+        "400":
+          description: Invalid file
+
+  /uploads/logo:
+    post:
+      summary: Upload a manufacturer/product logo to Blob Storage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResult"
+        "400":
+          description: Invalid file
+
+  /uploads/image:
+    post:
+      summary: Upload an offer preview image to Blob Storage
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResult"
+        "400":
+          description: Invalid file

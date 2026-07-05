@@ -1,0 +1,11 @@
+{
+    "database": {
+        "connectionString": "",
+        "databaseName": "LeBeAdmin"
+    },
+    "storage": {
+        "accountName": "",
+        "blobEndpoint": "",
+        "connectionString": ""
+    }
+}

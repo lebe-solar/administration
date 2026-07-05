@@ -1,0 +1,11 @@
+{
+    "database": {
+        "connectionString": "AZURE_COSMOS_CONNECTION_STRING",
+        "databaseName": "AZURE_COSMOS_DATABASE_NAME"
+    },
+    "storage": {
+        "accountName": "AZURE_STORAGE_ACCOUNT_NAME",
+        "blobEndpoint": "AZURE_STORAGE_BLOB_ENDPOINT",
+        "connectionString": "AZURE_STORAGE_CONNECTION_STRING"
+    }
+}
