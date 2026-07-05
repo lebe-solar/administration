@@ -6,25 +6,31 @@ param cosmosDatabaseName string = ''
 // Each collection is its own shard (partition key `_id`) — appropriate at this catalog's
 // scale (dozens to low hundreds of documents per collection) and avoids hot partitions
 // without needing a bespoke partition key per entity.
+//
+// The wildcard index (`$**`) is required: Cosmos DB's Mongo API only automatically indexes
+// every field when no custom `indexes` are supplied. As soon as you specify `indexes`
+// yourself, that list becomes the *entire* indexing policy — omitting the wildcard here
+// would silently restrict indexing to `_id` only, breaking any query that sorts or filters
+// on another field (which is every list endpoint in this app).
 param collections array = [
   {
     name: 'Products'
-    indexes: [ { key: { keys: [ '_id' ] } } ]
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
     shardKey: { keys: [ '_id' ] }
   }
   {
     name: 'Manufacturers'
-    indexes: [ { key: { keys: [ '_id' ] } } ]
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
     shardKey: { keys: [ '_id' ] }
   }
   {
     name: 'Offers'
-    indexes: [ { key: { keys: [ '_id' ] } } ]
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
     shardKey: { keys: [ '_id' ] }
   }
   {
     name: 'OfferComponents'
-    indexes: [ { key: { keys: [ '_id' ] } } ]
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
     shardKey: { keys: [ '_id' ] }
   }
 ]
