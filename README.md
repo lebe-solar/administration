@@ -33,6 +33,12 @@ azd up
 
 There is intentionally **no Key Vault or Application Insights/Log Analytics** in this deployment (trimmed from the upstream template to keep the footprint small for an internal tool) — the Cosmos connection string is resolved directly via `listConnectionStrings()` in Bicep and handed to the Function App as a plain app setting. Add them back if/when you need centralized secrets or telemetry.
 
+### Authentication
+
+Sign-in uses **Microsoft Entra ID** via [MSAL.js](https://learn.microsoft.com/entra/identity-platform/msal-overview), restricted to the `lebe-solar-admin` app registration's home tenant (anyone in the tenant can sign in — there is no per-user allow-list). The frontend (`src/web`) redirects unauthenticated users to a Microsoft sign-in page and attaches the resulting ID token as a `Bearer` header on every API call; the backend (`src/api/src/middleware/auth.ts`) validates that token's signature, issuer, and audience against the tenant's JWKS endpoint before allowing a request through. Because the app registration has no "Expose an API" scope, the frontend and API deliberately share one app registration and its ID token as the bearer credential.
+
+Both sides need the tenant and client id of that app registration — `AZURE_AD_TENANT_ID`/`AZURE_AD_CLIENT_ID` for the API, `VITE_AZURE_AD_TENANT_ID`/`VITE_AZURE_AD_CLIENT_ID` for the web app. `infra/main.bicep` wires these through automatically on `azd up` (defaulting to the `lebe-solar-admin` registration's values); for local development without a `.env`/`.env.local` override, both sides fall back to those same defaults. The API only enforces auth once both of its values are non-empty, so local development against an unauthenticated API still works if you don't set them.
+
 ### Local development
 
 **API** (`src/api`):

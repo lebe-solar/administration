@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useMsal } from '@azure/msal-react';
 import { Icon } from '../ui/Icon';
 
 const NAV_ITEMS = [
@@ -21,9 +22,24 @@ function isActive(path: string, pathname: string) {
   return pathname === path;
 }
 
+function initialsOf(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export function Sidebar({ open, onClose, mobile }: { open: boolean; onClose: () => void; mobile: boolean }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { instance, accounts } = useMsal();
+  const account = accounts[0];
+  const displayName = account?.name || account?.username || 'Angemeldet';
+  const email = account?.username || '';
+
+  const handleLogout = () => {
+    instance.logoutRedirect({ postLogoutRedirectUri: '/' });
+  };
 
   const panel = (
     <aside style={{ width: 250, background: 'var(--charcoal)', color: '#e9e9e7', display: 'flex', flexDirection: 'column', height: '100vh', position: mobile ? 'fixed' : 'sticky', top: 0, left: 0, zIndex: 150, transform: mobile ? (open ? 'translateX(0)' : 'translateX(-100%)') : 'none', transition: 'transform .25s ease', flex: 'none' }}>
@@ -48,12 +64,14 @@ export function Sidebar({ open, onClose, mobile }: { open: boolean; onClose: () 
         })}
       </nav>
       <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--sage)', color: 'var(--charcoal)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>JL</span>
-        <div style={{ flex: 1, lineHeight: 1.2 }}>
-          <div style={{ fontSize: 13.5, color: '#e9e9e7', fontWeight: 600 }}>Jonathan Leu</div>
-          <div style={{ fontSize: 11, color: '#9a9a97' }}>Administrator</div>
+        <span style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--sage)', color: 'var(--charcoal)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14, flex: 'none' }}>{initialsOf(displayName)}</span>
+        <div style={{ flex: 1, lineHeight: 1.2, minWidth: 0 }}>
+          <div style={{ fontSize: 13.5, color: '#e9e9e7', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayName}</div>
+          <div style={{ fontSize: 11, color: '#9a9a97', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</div>
         </div>
-        <Icon name="logout" size={17} color="#9a9a97" />
+        <button onClick={handleLogout} title="Abmelden" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'inline-flex', flex: 'none' }}>
+          <Icon name="logout" size={17} color="#9a9a97" />
+        </button>
       </div>
     </aside>
   );

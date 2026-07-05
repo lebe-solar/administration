@@ -7,5 +7,9 @@
         "accountName": "",
         "blobEndpoint": "",
         "connectionString": ""
+    },
+    "auth": {
+        "tenantId": "",
+        "clientId": ""
     }
 }

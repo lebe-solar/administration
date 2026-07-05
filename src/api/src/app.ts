@@ -14,6 +14,7 @@ import createUploadsRouter from "./routes/uploads";
 import { configureMongoose } from "./models/mongoose";
 import { seedIfEmpty } from "./seed";
 import { logger } from "./config/observability";
+import { createAuthMiddleware } from "./middleware/auth";
 
 // Use API_ALLOW_ORIGINS env var with comma separated urls like
 // `http://localhost:300, http://otherurl:100`
@@ -59,15 +60,21 @@ export const createApp = async (): Promise<Express> => {
         origin: originList()
     }));
 
-    // API Routes
-    app.use("/categories", categories);
-    app.use("/manufacturers", manufacturers);
-    app.use("/products", products);
-    app.use("/offers", offers);
-    app.use("/offer-components", offerComponents);
-    app.use("/uploads", createUploadsRouter(config));
+    // Bearer-token auth (Entra ID). Only enforced once tenant/client id are configured, so
+    // local dev without an app registration on hand keeps working unauthenticated.
+    const authMiddlewares = config.auth.tenantId && config.auth.clientId
+        ? [createAuthMiddleware(config.auth)]
+        : [];
 
-    // Swagger UI
+    // API Routes
+    app.use("/categories", ...authMiddlewares, categories);
+    app.use("/manufacturers", ...authMiddlewares, manufacturers);
+    app.use("/products", ...authMiddlewares, products);
+    app.use("/offers", ...authMiddlewares, offers);
+    app.use("/offer-components", ...authMiddlewares, offerComponents);
+    app.use("/uploads", ...authMiddlewares, createUploadsRouter(config));
+
+    // Swagger UI (left unauthenticated: it only serves the API's static documentation)
     const swaggerDocument = yaml.load("./openapi.yaml");
     app.use("/", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
 

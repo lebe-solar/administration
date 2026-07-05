@@ -9,7 +9,13 @@ export interface StorageConfig {
     connectionString?: string
 }
 
+export interface AuthConfig {
+    tenantId: string
+    clientId: string
+}
+
 export interface AppConfig {
     database: DatabaseConfig
     storage: StorageConfig
+    auth: AuthConfig
 }

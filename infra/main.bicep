@@ -23,6 +23,12 @@ param webServiceName string = ''
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
+@description('Entra ID (Azure AD) tenant id used to sign in to the admin app')
+param azureAdTenantId string = '0b0e365f-09be-4291-8f1f-082f5929872d'
+
+@description('Entra ID (Azure AD) app registration (client) id used to sign in to the admin app')
+param azureAdClientId string = '720a1304-b7eb-4161-9025-e5689331de4a'
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
@@ -71,6 +77,8 @@ module api './app/api-appservice-avm.bicep' = {
       AZURE_COSMOS_DATABASE_NAME: cosmos.outputs.databaseName
       AZURE_STORAGE_ACCOUNT_NAME: storage.outputs.name
       AZURE_STORAGE_BLOB_ENDPOINT: storage.outputs.primaryBlobEndpoint
+      AZURE_AD_TENANT_ID: azureAdTenantId
+      AZURE_AD_CLIENT_ID: azureAdClientId
       FUNCTIONS_EXTENSION_VERSION: '~4'
       FUNCTIONS_WORKER_RUNTIME: 'node'
       SCM_DO_BUILD_DURING_DEPLOYMENT: true
@@ -167,3 +175,5 @@ output REACT_APP_WEB_BASE_URL string = webUri
 output AZURE_COSMOS_DATABASE_NAME string = cosmos.outputs.databaseName
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
 output AZURE_STORAGE_BLOB_ENDPOINT string = storage.outputs.primaryBlobEndpoint
+output AZURE_AD_TENANT_ID string = azureAdTenantId
+output AZURE_AD_CLIENT_ID string = azureAdClientId

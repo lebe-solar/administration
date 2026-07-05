@@ -1,4 +1,4 @@
-import { AppConfig, DatabaseConfig, StorageConfig } from "./appConfig";
+import { AppConfig, AuthConfig, DatabaseConfig, StorageConfig } from "./appConfig";
 import dotenv from "dotenv";
 import { logger } from "../config/observability";
 import { IConfig } from "config";
@@ -13,6 +13,7 @@ export const getConfig: () => Promise<AppConfig> = async () => {
     const config: IConfig = require("config") as IConfig;
     const databaseConfig = config.get<DatabaseConfig>("database");
     const storageConfig = config.get<StorageConfig>("storage");
+    const authConfig = config.get<AuthConfig>("auth");
 
     if (!databaseConfig.connectionString) {
         logger.warn("database.connectionString is required but has not been set. Ensure environment variable 'AZURE_COSMOS_CONNECTION_STRING' has been set");
@@ -20,6 +21,10 @@ export const getConfig: () => Promise<AppConfig> = async () => {
 
     if (!storageConfig.accountName) {
         logger.warn("storage.accountName is not set. Ensure environment variable 'AZURE_STORAGE_ACCOUNT_NAME' has been set for uploads to work against Azure Blob Storage.");
+    }
+
+    if (!authConfig.tenantId || !authConfig.clientId) {
+        logger.warn("auth.tenantId/auth.clientId are not set. Ensure environment variables 'AZURE_AD_TENANT_ID' and 'AZURE_AD_CLIENT_ID' have been set so bearer tokens can be validated.");
     }
 
     return {
@@ -31,6 +36,10 @@ export const getConfig: () => Promise<AppConfig> = async () => {
             accountName: storageConfig.accountName,
             blobEndpoint: storageConfig.blobEndpoint,
             connectionString: storageConfig.connectionString,
+        },
+        auth: {
+            tenantId: authConfig.tenantId,
+            clientId: authConfig.clientId,
         },
     };
 };
