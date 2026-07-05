@@ -1,0 +1,14 @@
+@import './tokens.css';
+
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; padding: 0; height: 100%; }
+body { background: #f4f4f1; font-family: var(--font-sans); }
+::selection { background: var(--yellow); color: var(--charcoal); }
+input, select, textarea, button { font-family: var(--font-sans); }
+
+@keyframes admloader { 0% { transform: translateX(-100%); } 100% { transform: translateX(180%); } }
+@keyframes admpulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@keyframes admslide { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+::-webkit-scrollbar { height: 10px; width: 10px; }
+::-webkit-scrollbar-thumb { background: var(--gray-500); border-radius: 5px; }

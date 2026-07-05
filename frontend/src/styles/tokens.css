@@ -1,0 +1,69 @@
+/* LeBe Solarenergie — design tokens, ported from the design system's tokens/*.css */
+
+@font-face {
+  font-family: 'Soehne';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/soehne-buch.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Soehne';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/soehne-buch-kursiv.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Soehne';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/soehne-halbfett.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Soehne';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/soehne-Bold.woff2') format('woff2');
+}
+
+:root {
+  /* ---- Brand palette ---- */
+  --sage: #9fb2a1;
+  --yellow: #ffed00;
+  --charcoal: #3c3c3b;
+  --cream: #f1f0ec;
+  --light-red: #fbd9d3;
+  --white: #ffffff;
+
+  /* ---- Neutral ramp (warm greys) ---- */
+  --gray-100: #f8f8f8;
+  --gray-300: #f7f7f7;
+  --gray-400: #ebebeb;
+  --gray-500: #e3e3e3;
+  --gray-600: #f1f0ec;
+  --gray-mid: #878787;
+
+  /* ---- Typography ---- */
+  --font-sans: 'Soehne', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fw-book: 400;
+  --fw-semi: 600;
+  --fw-bold: 700;
+
+  /* ---- Spacing / radii / shadows ---- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  --shadow-card: 0 1px 3px rgba(60, 60, 59, 0.08), 0 4px 16px rgba(60, 60, 59, 0.06);
+  --shadow-raised: 0 8px 28px rgba(60, 60, 59, 0.12);
+  --ring-pulse: 0 0 0 8px rgba(255, 237, 0, 0.5);
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 300ms;
+  --dur-slow: 800ms;
+}
