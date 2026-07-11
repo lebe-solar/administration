@@ -38,6 +38,14 @@ services:
         posix:
           shell: sh
           run: 'rm .env.local'
+  webclient:
+    project: ./src/web-client
+    dist: out
+    language: js
+    host: staticwebapp
+    # No prepackage/.env.local hook yet — this app's backend is mocked for
+    # now (no NEXT_PUBLIC_API_BASE_URL to inject). Add one here once the
+    # real API integration lands.
   api:
     project: ./src/api
     language: js

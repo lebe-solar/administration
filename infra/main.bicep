@@ -19,6 +19,7 @@ param cosmosAccountName string = ''
 param resourceGroupName string = ''
 param storageAccountName string = ''
 param webServiceName string = ''
+param webClientServiceName string = ''
 
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
@@ -58,6 +59,19 @@ module web 'br/public:avm/res/web/static-site:0.3.0' = {
     location: location
     provider: 'Custom'
     tags: union(tags, { 'azd-service-name': 'web' })
+  }
+}
+
+// The public client-facing marketing/offer/contact site (no auth) — mocked backend for now,
+// a real API integration is a later step.
+module webclient 'br/public:avm/res/web/static-site:0.3.0' = {
+  name: 'staticwebclient'
+  scope: rg
+  params: {
+    name: !empty(webClientServiceName) ? webClientServiceName : '${abbrs.webStaticSites}webclient-${resourceToken}'
+    location: location
+    provider: 'Custom'
+    tags: union(tags, { 'azd-service-name': 'webclient' })
   }
 }
 
@@ -172,6 +186,7 @@ output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = tenant().tenantId
 output API_BASE_URL string = api.outputs.SERVICE_API_URI
 output REACT_APP_WEB_BASE_URL string = webUri
+output REACT_APP_WEBCLIENT_BASE_URL string = 'https://${webclient.outputs.defaultHostname}'
 output AZURE_COSMOS_DATABASE_NAME string = cosmos.outputs.databaseName
 output AZURE_STORAGE_ACCOUNT_NAME string = storage.outputs.name
 output AZURE_STORAGE_BLOB_ENDPOINT string = storage.outputs.primaryBlobEndpoint
