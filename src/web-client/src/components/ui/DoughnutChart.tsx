@@ -57,6 +57,8 @@ export function DoughnutChart({ pct, color, label }: DoughnutChartProps) {
         animation: { duration: 300 },
         plugins: {
           legend: { display: false },
+          // chartjs-plugin-datalabels is registered globally (by StackedBarChart); disable it here explicitly.
+          datalabels: { display: false },
           lebeCenter: { text: pct + '%', sub: label },
           tooltip: { callbacks: { label: (c) => c.label + ': ' + c.raw + ' %' } },
         } as Chart<'doughnut'>['options']['plugins'],
