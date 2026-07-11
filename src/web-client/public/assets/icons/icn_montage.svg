@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <clipPath id="clip-Zeichenfläche_15">
+      <rect width="80" height="80"></rect>
+    </clipPath>
+  </defs>
+  <g id="Zeichenfläche_15" data-name="Zeichenfläche – 15" clip-path="url(#clip-Zeichenfläche_15)">
+    <rect width="80" height="80" fill="#fff"></rect>
+    <g id="Gruppe_270" data-name="Gruppe 270" transform="matrix(0.719, 0.695, -0.695, 0.719, 3828.514, -4642.864)">
+      <path id="Pfad_188" data-name="Pfad 188" d="M531.447,5977.87v5.754a2.7,2.7,0,0,1-2.7,2.7h-3.515a2.7,2.7,0,0,1-2.7-2.7v-5.754a.6.6,0,0,0-.925-.511,9.951,9.951,0,0,0,.75,17.181,1.2,1.2,0,0,1,.645,1.067v27.974a2.552,2.552,0,0,0,2.552,2.552h2.867a2.552,2.552,0,0,0,2.552-2.552v-27.974a1.205,1.205,0,0,1,.645-1.067,9.951,9.951,0,0,0,.75-17.181A.6.6,0,0,0,531.447,5977.87Z" transform="translate(0 0)" fill="#9fb1a1"></path>
+    </g>
+  </g>
+</svg>

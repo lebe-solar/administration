@@ -1,0 +1,133 @@
+/* LeBe Solarenergie — design tokens, ported from the design system's tokens/*.css */
+
+@font-face {
+  font-family: 'Soehne';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/soehne-buch.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Soehne';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/soehne-buch-kursiv.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Soehne';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/soehne-halbfett.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Soehne';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/soehne-Bold.woff2') format('woff2');
+}
+
+:root {
+  /* ---- Brand palette ---- */
+  --sage: #9fb2a1;
+  --yellow: #ffed00;
+  --charcoal: #3c3c3b;
+  --cream: #f1f0ec;
+  --light-red: #fbd9d3;
+  --white: #ffffff;
+
+  /* ---- Neutral ramp (warm greys) ---- */
+  --gray-100: #f8f8f8;
+  --gray-300: #f7f7f7;
+  --gray-400: #ebebeb;
+  --gray-500: #e3e3e3;
+  --gray-600: #f1f0ec;
+  --gray-mid: #878787;
+
+  /* ---- Semantic aliases ---- */
+  --color-text: var(--charcoal);
+  --color-text-muted: var(--gray-mid);
+  --color-text-invert: var(--yellow);
+
+  --surface-page: var(--white);
+  --surface-warm: var(--cream);
+  --surface-panel: var(--sage);
+  --surface-muted: var(--gray-500);
+  --surface-card: var(--white);
+
+  --color-brand: var(--sage);
+  --color-accent: var(--yellow);
+  --color-ink: var(--charcoal);
+
+  --border-subtle: var(--gray-500);
+  --border-strong: var(--charcoal);
+
+  --on-sage: var(--yellow);
+  --on-charcoal: var(--yellow);
+  --on-cream: var(--charcoal);
+  --on-yellow: var(--charcoal);
+
+  /* ---- Typography ---- */
+  --font-sans: 'Soehne', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fw-book: 400;
+  --fw-semi: 600;
+  --fw-bold: 700;
+
+  /* ---- Type scale (px) ---- */
+  --text-h1: 50px;
+  --text-h3: 40px;
+  --text-h4: 34px;
+  --text-h5: 30px;
+  --text-h6: 24px;
+
+  --text-p1: 26px;
+  --text-p2: 24px;
+  --text-p3: 22px;
+  --text-p4: 18px;
+  --text-p5: 16px;
+  --text-p6: 13px;
+  --text-p7: 11px;
+
+  /* ---- Line heights ---- */
+  --lh-tight: 1.1;
+  --lh-snug: 1.25;
+  --lh-body: 1.55;
+
+  /* ---- Spacing scale (px) ---- */
+  --space-1: 5px;
+  --space-2: 10px;
+  --space-3: 14px;
+  --space-4: 20px;
+  --space-5: 25px;
+  --space-6: 30px;
+  --space-7: 40px;
+  --space-8: 50px;
+  --space-9: 60px;
+  --space-10: 80px;
+  --space-11: 90px;
+  --space-12: 120px;
+  --space-13: 140px;
+
+  --gutter-mobile: 20px;
+  --gutter-desktop: 120px;
+  --container-max: 1280px;
+
+  /* ---- Corner radii ---- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 9999px;
+
+  /* ---- Elevation ---- */
+  --shadow-card: 0 1px 3px rgba(60, 60, 59, 0.08), 0 4px 16px rgba(60, 60, 59, 0.06);
+  --shadow-raised: 0 8px 28px rgba(60, 60, 59, 0.12);
+  --ring-pulse: 0 0 0 8px rgba(255, 237, 0, 0.5);
+
+  /* ---- Motion ---- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 150ms;
+  --dur-base: 300ms;
+  --dur-slow: 800ms;
+}

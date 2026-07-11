@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <clipPath id="clip-Zeichenfläche_10">
+      <rect width="80" height="80"></rect>
+    </clipPath>
+  </defs>
+  <g id="Zeichenfläche_10" data-name="Zeichenfläche – 10" clip-path="url(#clip-Zeichenfläche_10)">
+    <rect width="80" height="80" fill="#fff"></rect>
+    <g id="Gruppe_289" data-name="Gruppe 289">
+      <g id="Gruppe_271" data-name="Gruppe 271" transform="translate(21.171 24.861)">
+        <path id="Vereinigungsmenge_1" data-name="Vereinigungsmenge 1" d="M-1089.07,467.309V465.1h-2.21v-1.715c0-5.111-5.525-8.805-5.525-11.987v-2.652c0-.293.247-.773.552-.773h2.763v-6.123a1.083,1.083,0,0,1,1.105-1.06,1.083,1.083,0,0,1,1.105,1.06v6.122h8.84v-6.122a1.106,1.106,0,0,1,1.15-1.06,1.106,1.106,0,0,1,1.06,1.06v6.122h2.762c.305,0,.552.48.552.773V451.4c0,3.181-5.525,6.876-5.525,11.987V465.1h-2.211v2.21Z" transform="translate(1117.949 -446.251)" fill="#9fb1a1"></path>
+        <path id="Pfad_189" data-name="Pfad 189" d="M31.407,17.883A15.8,15.8,0,1,1,12.065,0" transform="translate(-2.784 5.638) rotate(-10)" fill="none" stroke="#9fb1a1" stroke-linecap="round" stroke-miterlimit="10" stroke-width="3"></path>
+      </g>
+      <path id="Pfad_202" data-name="Pfad 202" d="M-9020.668-18755.248v-9.174" transform="translate(9067.668 18785)" fill="none" stroke="#9fb1a1" stroke-linecap="round" stroke-width="3"></path>
+      <path id="Pfad_203" data-name="Pfad 203" d="M-9020.668-18755.248v-9.174" transform="translate(9078.668 18785)" fill="none" stroke="#9fb1a1" stroke-linecap="round" stroke-width="3"></path>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="340" height="400" viewBox="0 0 340 400">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rechteck_343" data-name="Rechteck 343" width="150.282" height="160.397" fill="none"></rect>
+    </clipPath>
+  </defs>
+  <g id="Gruppe_859" data-name="Gruppe 859" transform="translate(-142 -3650)">
+    <rect id="Bild_17" data-name="Bild 17" width="340" height="400" transform="translate(142 3650)" fill="#f8f8f8"></rect>
+    <rect id="Bild_35" data-name="Bild 35" width="340" height="400" transform="translate(142 3650)" fill="#9fb2a1"></rect>
+    <g id="Gruppe_892" data-name="Gruppe 892" transform="translate(236.859 3769.801)">
+      <g id="Gruppe_891" data-name="Gruppe 891" clip-path="url(#clip-path)">
+        <path id="Pfad_289" data-name="Pfad 289" d="M91.991,92.428v-7.66h-7.66V78.823c0-17.715-19.151-30.522-19.151-41.55V28.079c0-1.015.857-2.68,1.914-2.68h9.576V4.176a3.835,3.835,0,0,1,7.663,0V25.4h30.642V4.176a3.834,3.834,0,0,1,7.662,0V25.4h9.576c1.059,0,1.914,1.664,1.914,2.68v9.195c0,11.021-19.151,23.836-19.151,41.552v5.944h-7.663v7.66Z" transform="translate(15.536 0.119)" fill="#ffe500"></path>
+        <path id="Pfad_290" data-name="Pfad 290" d="M91.991,92.428v-7.66h-7.66V78.823c0-17.715-19.151-30.522-19.151-41.55V28.079c0-1.015.857-2.68,1.914-2.68h9.576V4.176a3.835,3.835,0,0,1,7.663,0V25.4h30.642V4.176a3.834,3.834,0,0,1,7.662,0V25.4h9.576c1.059,0,1.914,1.664,1.914,2.68v9.195c0,11.021-19.151,23.836-19.151,41.552v5.944h-7.663v7.66Z" transform="translate(15.536 0.119)" fill="none" stroke="#ffe500" stroke-miterlimit="10" stroke-width="1"></path>
+        <path id="Pfad_291" data-name="Pfad 291" d="M114.559,75.11a54.782,54.782,0,1,1-76.789-49.4" transform="translate(1.192 6.127)" fill="none" stroke="#ffe500" stroke-linecap="round" stroke-miterlimit="10" stroke-width="10"></path>
+        <path id="Pfad_292" data-name="Pfad 292" d="M6.083,105.236s13.145,29.229,63.829,23.856c0,0,24.767-.689,45.876-26.488" transform="translate(1.45 24.455)" fill="none" stroke="#ffe500" stroke-linecap="round" stroke-miterlimit="10" stroke-width="10"></path>
+        <path id="Pfad_293" data-name="Pfad 293" d="M19.4,79.679S19.161,33.209,67.268,36.6" transform="translate(4.624 8.682)" fill="none" stroke="#ffe500" stroke-linecap="round" stroke-miterlimit="10" stroke-width="10"></path>
+        <path id="Pfad_294" data-name="Pfad 294" d="M35.063,78.791s-.14-26.859,27.665-24.9" transform="translate(8.357 12.821)" fill="none" stroke="#ffe500" stroke-linecap="round" stroke-miterlimit="10" stroke-width="10"></path>
+      </g>
+    </g>
+  </g>
+</svg>

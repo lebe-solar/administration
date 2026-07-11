@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <clipPath id="clip-Zeichenfläche_19">
+      <rect width="80" height="80"></rect>
+    </clipPath>
+  </defs>
+  <g id="Zeichenfläche_19" data-name="Zeichenfläche – 19" clip-path="url(#clip-Zeichenfläche_19)">
+    <rect width="80" height="80" fill="#fff"></rect>
+    <g id="Gruppe_288" data-name="Gruppe 288">
+      <g id="Gruppe_287" data-name="Gruppe 287">
+        <line id="Linie_94" data-name="Linie 94" x1="33.883" y1="18.391" transform="translate(22.828 29.625)" fill="none" stroke="#9fb1a1" stroke-linejoin="round" stroke-width="5"></line>
+        <path id="Pfad_186" data-name="Pfad 186" d="M1375.927,5420.687" transform="translate(-1320.035 -5409.574)" fill="none" stroke="#9fb1a1" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"></path>
+        <line id="Linie_95" data-name="Linie 95" x2="32.438" transform="translate(23.454 27.248)" fill="none" stroke="#9fb1a1" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"></line>
+        <line id="Linie_96" data-name="Linie 96" y1="34.745" transform="translate(23.276 21.357)" fill="none" stroke="#9fb1a1" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"></line>
+        <line id="Linie_97" data-name="Linie 97" y1="34.745" transform="translate(55.893 21.357)" fill="none" stroke="#9fb1a1" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"></line>
+        <path id="Pfad_191" data-name="Pfad 191" d="M0,17.839,15.841,8.919,31.683,0" transform="translate(23.967 29.445)" fill="#9fb1a1" stroke="#9fb1a1" stroke-width="5"></path>
+      </g>
+    </g>
+  </g>
+</svg>
