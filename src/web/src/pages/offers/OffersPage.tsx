@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Topbar } from '../../components/layout/Topbar';
 import { Card } from '../../components/ui/Card';
@@ -7,14 +7,13 @@ import { Icon } from '../../components/ui/Icon';
 import { TextInput, SelectInput } from '../../components/ui/Fields';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
-import { StatusBadge, AllowBadge } from '../../components/ui/Badges';
-import { OfferPreview } from './OfferPreview';
+import { AngebotCard } from './AngebotCard';
+import { computeSystem, displayPrice } from './offerUtils';
 import { useLayout } from '../../lib/layoutContext';
-import { useWindowWidth, fmtDate, isExpired } from '../../lib/utils';
+import { useWindowWidth, isExpired } from '../../lib/utils';
 import { useToast } from '../../lib/ToastContext';
 import { offersApi } from '../../api/offers';
 import { productsApi } from '../../api/products';
-import { linkedProductCount } from './offerUtils';
 import type { Offer, Product } from '../../types';
 import { ApiError } from '../../api/client';
 
@@ -31,7 +30,6 @@ export default function OffersPage() {
   const [st, setSt] = useState('all');
   const [price, setPrice] = useState('all');
   const [valid, setValid] = useState('all');
-  const [previewOffer, setPreviewOffer] = useState<Offer | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Offer | null>(null);
 
   function load() {
@@ -41,6 +39,8 @@ export default function OffersPage() {
       .finally(() => setLoading(false));
   }
   useEffect(load, []);
+
+  const productsById = useMemo(() => Object.fromEntries(products.map(p => [p.id, p])), [products]);
 
   const filtered = offers.filter(o =>
     (st === 'all' || o.status === st) &&
@@ -99,7 +99,7 @@ export default function OffersPage() {
 
       {loading ? (
         <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 18 }}>
-          {[0, 1, 2].map(i => <Card key={i} pad={0} style={{ height: 320, background: 'var(--gray-300)', animation: 'admpulse 1.2s infinite' }} />)}
+          {[0, 1, 2].map(i => <Card key={i} pad={0} style={{ height: 380, background: 'var(--gray-300)', animation: 'admpulse 1.2s infinite' }} />)}
         </div>
       ) : filtered.length === 0 ? (
         <Card pad={0}>
@@ -111,63 +111,23 @@ export default function OffersPage() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 18 }}>
           {filtered.map(o => (
-            <Card key={o.id} pad={0} style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ position: 'relative', height: 150, background: 'var(--sage)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {o.previewImage
-                  ? <img src={o.previewImage} alt={o.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <Icon name="image" size={34} color="rgba(255,255,255,0.7)" />}
-                <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', gap: 6 }}>
-                  <StatusBadge status={o.status} />{isExpired(o.validUntil) && <span style={{ padding: '4px 9px', borderRadius: 'var(--radius-pill)', background: 'rgba(192,57,43,0.9)', color: '#fff', fontSize: 11, fontWeight: 600 }}>Abgelaufen</span>}
-                </div>
-                <div style={{ position: 'absolute', bottom: 10, right: 10 }}><AllowBadge allow={o.allowChanges} /></div>
-              </div>
-              <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-                <div style={{ fontSize: 12, color: 'var(--sage)', fontWeight: 700 }}>{o.id}</div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--charcoal)', lineHeight: 1.25 }}>{o.title}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{o.subtitle}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--charcoal)', display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="layers" size={13} color="var(--gray-mid)" />{o.system}</div>
-                <div style={{ display: 'flex', gap: 14, fontSize: 12, color: 'var(--gray-mid)', marginTop: 2 }}>
-                  <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}><Icon name="box" size={12} />{linkedProductCount(o.products)} Produkte</span>
-                  <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}><Icon name="check" size={12} />{o.inclusive.length} Leistungen</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 'auto', paddingTop: 8 }}>
-                  <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--charcoal)' }}>{o.priceLabel || o.price}</span>
-                  <span style={{ fontSize: 11.5, color: 'var(--gray-mid)' }}>bis {fmtDate(o.validUntil)}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', borderTop: '1px solid var(--gray-300)' }}>
-                {([
-                  ['eye', 'Vorschau', () => setPreviewOffer(o)],
-                  ['edit', 'Bearbeiten', () => navigate(`/offers/${o.id}/edit`)],
-                  ['copy', 'Duplizieren', () => duplicate(o)],
-                  ['trash', 'Löschen', () => setDeleteTarget(o)],
-                ] as const).map(([ic, lb, fn], i) => (
-                  <button key={ic} onClick={fn} title={lb} style={{ flex: 1, padding: '10px 0', border: 'none', borderLeft: i ? '1px solid var(--gray-300)' : 'none', background: 'var(--white)', color: ic === 'trash' ? '#c0392b' : 'var(--charcoal)', cursor: 'pointer', display: 'inline-flex', justifyContent: 'center' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'var(--gray-300)'} onMouseLeave={e => e.currentTarget.style.background = 'var(--white)'}>
-                    <Icon name={ic} size={16} />
-                  </button>
-                ))}
-              </div>
-            </Card>
+            <AngebotCard key={o.id} offer={o} calculatedSystem={o.calculatedSystem || computeSystem(o.mainProducts, productsById)} productsById={productsById}
+              price={displayPrice(o)}
+              actions={([
+                ['eye', 'Vorschau', () => navigate(`/offers/${o.id}/preview`)],
+                ['edit', 'Bearbeiten', () => navigate(`/offers/${o.id}/edit`)],
+                ['copy', 'Duplizieren', () => duplicate(o)],
+                ['trash', 'Löschen', () => setDeleteTarget(o)],
+              ] as const).map(([ic, lb, fn], i) => (
+                <button key={ic} onClick={fn} title={lb} style={{ flex: 1, padding: '10px 0', border: 'none', borderLeft: i ? '1px solid var(--gray-300)' : 'none', background: 'var(--white)', color: ic === 'trash' ? '#c0392b' : 'var(--charcoal)', cursor: 'pointer', display: 'inline-flex', justifyContent: 'center' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--gray-300)'} onMouseLeave={e => e.currentTarget.style.background = 'var(--white)'}>
+                  <Icon name={ic} size={16} />
+                </button>
+              ))} />
           ))}
         </div>
       )}
       {!loading && filtered.length > 0 && <p style={{ margin: '14px 2px 0', fontSize: 13, color: 'var(--gray-mid)' }}>{filtered.length} von {offers.length} Angeboten</p>}
-
-      {previewOffer && (
-        <div onClick={() => setPreviewOffer(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(60,60,59,0.6)', zIndex: 200, overflow: 'auto', padding: '30px 16px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ maxWidth: 980, margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--white)', fontSize: 14, fontWeight: 600 }}><Icon name="globe" size={16} />Öffentliche Vorschau · {previewOffer.id}</span>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <AdminButton variant="accent" icon="edit" onClick={() => { const o = previewOffer; setPreviewOffer(null); navigate(`/offers/${o.id}/edit`); }}>Bearbeiten</AdminButton>
-                <AdminButton variant="primary" icon="x" onClick={() => setPreviewOffer(null)}>Schließen</AdminButton>
-              </div>
-            </div>
-            <OfferPreview offer={previewOffer} products={products} />
-          </div>
-        </div>
-      )}
 
       <ConfirmModal open={!!deleteTarget} title="Angebot löschen?"
         description={deleteTarget ? `„${deleteTarget.title}" (${deleteTarget.id}) wird dauerhaft entfernt.` : ''}

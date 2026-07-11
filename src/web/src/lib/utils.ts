@@ -14,7 +14,9 @@ export const today = () => new Date().toISOString().slice(0, 10);
 
 export function fmtDate(d?: string | null) {
   if (!d) return '—';
-  const p = d.split('-');
+  // Accepts plain 'YYYY-MM-DD' as well as full ISO timestamps ('YYYY-MM-DDTHH:mm:ss.sssZ') —
+  // strip the time portion first so both render as a clean dd.mm.yyyy date.
+  const p = d.split('T')[0].split('-');
   return p.length === 3 ? `${p[2]}.${p[1]}.${p[0]}` : d;
 }
 

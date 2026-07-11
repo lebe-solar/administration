@@ -1,6 +1,6 @@
 import { Icon } from '../../components/ui/Icon';
-import { LogoThumb } from '../../components/ui/LogoThumb';
 import { SelectInput, TextInput } from '../../components/ui/Fields';
+import { ProductCard } from '../../components/ui/ProductCard';
 import type { Slot } from './offerUtils';
 import type { Product } from '../../types';
 
@@ -28,19 +28,7 @@ export function ProductSlotField({ slot, products, idVal, countVal, onChange }: 
           <TextInput type="number" min="0" value={idVal ? (countVal || 1) : 0} disabled={!idVal} placeholder="Anz." onChange={e => onChange(slot.key, idVal ?? null, Number(e.target.value))} />
         </div>
       )}
-      {sel && (
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 12, background: 'var(--gray-300)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
-          <LogoThumb src={sel.Logo} name={sel.Hersteller} size={40} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--charcoal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sel.Header}</div>
-            <div style={{ fontSize: 12, color: 'var(--gray-mid)' }}>
-              {sel.Hersteller} · {sel.Power}{sel.Unit ? ' ' + sel.Unit : ''}
-              {slot.showDims && sel.panelHeightMeters ? ` · ${sel.panelHeightMeters}×${sel.panelWidthMeters} m` : ''}
-            </div>
-          </div>
-          <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--sage)' }}>×{countVal || 1}</span>
-        </div>
-      )}
+      {sel && <div style={{ marginTop: 12 }}><ProductCard product={sel} quantity={countVal || 1} /></div>}
     </div>
   );
 }

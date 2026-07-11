@@ -24,6 +24,7 @@ export type Product = {
     Spezifikation?: string | null
     hasSpec?: boolean
     Logo?: string | null
+    image?: string | null
     Status: ProductStatus
     panelHeightMeters?: number | null
     panelWidthMeters?: number | null
@@ -48,6 +49,7 @@ const schema = new Schema({
     Spezifikation: { type: String, default: null },
     hasSpec: { type: Boolean, default: false },
     Logo: { type: String, default: null },
+    image: { type: String, default: null },
     Status: { type: String, required: true, enum: ["Active", "Draft", "Hidden"], default: "Draft" },
     panelHeightMeters: { type: Number, default: null },
     panelWidthMeters: { type: Number, default: null },
