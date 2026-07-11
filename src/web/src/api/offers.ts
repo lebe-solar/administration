@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Offer, OfferItem } from '../types';
+import type { Offer } from '../types';
 
 export interface OfferFilters {
   status?: string;
@@ -23,12 +23,4 @@ export const offersApi = {
   update: (id: string, data: Partial<Offer>) => api.put<Offer>(`/offers/${id}`, data),
   duplicate: (id: string) => api.post<Offer>(`/offers/${id}/duplicate`),
   remove: (id: string) => api.del<void>(`/offers/${id}`),
-};
-
-export const offerComponentsApi = {
-  list: () => api.get<OfferItem[]>('/offer-components'),
-  create: (data: Partial<OfferItem>) => api.post<OfferItem>('/offer-components', data),
-  update: (id: string, data: Partial<OfferItem>) => api.put<OfferItem>(`/offer-components/${id}`, data),
-  duplicate: (id: string) => api.post<OfferItem>(`/offer-components/${id}/duplicate`),
-  remove: (id: string) => api.del<void>(`/offer-components/${id}`),
 };

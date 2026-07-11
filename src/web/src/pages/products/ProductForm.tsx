@@ -9,6 +9,7 @@ import { Field, TextInput, TextArea, SelectInput } from '../../components/ui/Fie
 import { StatusBadge } from '../../components/ui/Badges';
 import { PdfUpload } from '../../components/ui/PdfUpload';
 import { LogoUpload } from '../../components/ui/LogoUpload';
+import { ImageUpload } from '../../components/ui/ImageUpload';
 import { useLayout } from '../../lib/layoutContext';
 import { useWindowWidth } from '../../lib/utils';
 import { useToast } from '../../lib/ToastContext';
@@ -20,14 +21,14 @@ import type { Category, Manufacturer, ProductStatus } from '../../types';
 interface FormState {
   id: string; category: Category['key']; Header: string; Beschreibung: string;
   manufacturer_id: string; Hersteller: string; Garantie: string; Power: string; Unit: string;
-  Spezifikation: string; specFilename: string; Logo: string | null; Status: ProductStatus;
+  Spezifikation: string; specFilename: string; Logo: string | null; image: string; Status: ProductStatus;
   panelHeightMeters: string; panelWidthMeters: string;
 }
 
 const BLANK: FormState = {
   id: '', category: 'Solarmodule', Header: '', Beschreibung: '', manufacturer_id: '',
   Hersteller: '', Garantie: '', Power: '', Unit: 'Watt', Spezifikation: '', specFilename: '',
-  Logo: null, Status: 'Active', panelHeightMeters: '', panelWidthMeters: '',
+  Logo: null, image: '', Status: 'Active', panelHeightMeters: '', panelWidthMeters: '',
 };
 
 const UNIT_OPTIONS: Record<string, string[]> = { Solarmodule: ['Watt'], Wechselrichter: ['kW'], Heimspeicher: ['kWh'], Ladestationen: ['kW'], Heizsysteme: ['kW'] };
@@ -70,7 +71,7 @@ export default function ProductForm() {
           id: p.id, category: p.category, Header: p.Header, Beschreibung: p.Beschreibung,
           manufacturer_id: String(p.manufacturer_id), Hersteller: p.Hersteller, Garantie: p.Garantie,
           Power: p.Power == null ? '' : String(p.Power), Unit: p.Unit, Spezifikation: p.Spezifikation || '',
-          specFilename: p.Spezifikation || '', Logo: p.Logo, Status: p.Status,
+          specFilename: p.Spezifikation || '', Logo: p.Logo, image: p.image || '', Status: p.Status,
           panelHeightMeters: p.panelHeightMeters == null ? '' : String(p.panelHeightMeters),
           panelWidthMeters: p.panelWidthMeters == null ? '' : String(p.panelWidthMeters),
         });
@@ -108,7 +109,7 @@ export default function ProductForm() {
       id: f.id, category: f.category, Header: f.Header, Beschreibung: f.Beschreibung,
       manufacturer_id: f.manufacturer_id || undefined,
       Garantie: f.Garantie, Power: f.Power === '' ? null : f.Power, Unit: f.Unit,
-      Spezifikation: f.Spezifikation || null, Logo: f.Logo, Status: status,
+      Spezifikation: f.Spezifikation || null, Logo: f.Logo, image: f.image || null, Status: status,
       panelHeightMeters: isSolar ? f.panelHeightMeters : null,
       panelWidthMeters: isSolar ? f.panelWidthMeters : null,
     };
@@ -218,6 +219,12 @@ export default function ProductForm() {
             <SectionTitle icon="file">Specification PDF</SectionTitle>
             {errors.Spezifikation && <p style={{ margin: '0 0 10px', fontSize: 12.5, color: '#c0392b' }}>{errors.Spezifikation}</p>}
             <PdfUpload value={f.Spezifikation} filename={f.specFilename} onChange={(url, filename) => setF(s => ({ ...s, Spezifikation: url, specFilename: filename }))} />
+          </Card>
+
+          <Card>
+            <SectionTitle icon="image">Produktfoto</SectionTitle>
+            <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--gray-mid)' }}>Echtes Produktfoto — unabhängig vom Herstellerlogo, wird auf der öffentlichen Produktkarte gezeigt.</p>
+            <ImageUpload value={f.image} onChange={v => set('image', v)} label="Produktfoto hochladen" />
           </Card>
         </div>
 

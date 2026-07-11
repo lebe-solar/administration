@@ -12,6 +12,7 @@ export interface ProductInput {
   Unit: string;
   Spezifikation: string | null;
   Logo: string | null;
+  image: string | null;
   Status: Product['Status'];
   panelHeightMeters: string | number | null;
   panelWidthMeters: string | number | null;

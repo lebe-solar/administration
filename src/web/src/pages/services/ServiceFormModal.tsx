@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
-import { Field, TextInput } from '../../components/ui/Fields';
+import { Field, TextInput, SelectInput } from '../../components/ui/Fields';
 import { AdminButton, IconAction } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { ApiError } from '../../api/client';
-import type { OfferItem } from '../../types';
+import type { Service, Visibility } from '../../types';
 
-export function ComponentFormModal({ initial, onSave, onClose }: {
-  initial: OfferItem | null;
-  onSave: (rec: Partial<OfferItem>, editing: boolean) => Promise<void>;
+export function ServiceFormModal({ initial, onSave, onClose }: {
+  initial: Service | null;
+  onSave: (rec: Partial<Service>, editing: boolean) => Promise<void>;
   onClose: () => void;
 }) {
   const [f, setF] = useState({
-    name: initial?.name || '', quantity: initial?.quantity ?? 1, price: initial?.price ?? 0,
+    name: initial?.name || '', category: initial?.category || '',
     descriptionLines: initial?.descriptionLines?.length ? initial.descriptionLines : [''],
+    taxRelevantForCraftsmanWork: initial?.taxRelevantForCraftsmanWork ?? false,
+    visibility: (initial?.visibility || 'public') as Visibility, included: initial?.included ?? true,
   });
   const [err, setErr] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -44,10 +46,26 @@ export function ComponentFormModal({ initial, onSave, onClose }: {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <Field label="Name" required error={err.name}><TextInput value={f.name} error={err.name} onChange={e => set('name', e.target.value)} placeholder="z. B. Modulaufständerung" /></Field>
+        <Field label="Kategorie"><TextInput value={f.category} onChange={e => set('category', e.target.value)} placeholder="z. B. Montage" /></Field>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <Field label="Standardmenge"><TextInput type="number" min="1" value={f.quantity} onChange={e => set('quantity', Number(e.target.value))} /></Field>
-          <Field label="Standardpreis (€)"><TextInput type="number" min="0" value={f.price} onChange={e => set('price', Number(e.target.value))} /></Field>
+          <Field label="Sichtbarkeit">
+            <SelectInput value={f.visibility} onChange={e => set('visibility', e.target.value as Visibility)}>
+              <option value="public">öffentlich</option>
+              <option value="internal">intern</option>
+              <option value="hidden">verborgen</option>
+            </SelectInput>
+          </Field>
+          <Field label="Status">
+            <SelectInput value={f.included ? 'included' : 'optional'} onChange={e => set('included', e.target.value === 'included')}>
+              <option value="included">inklusive</option>
+              <option value="optional">optional</option>
+            </SelectInput>
+          </Field>
         </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, cursor: 'pointer' }}>
+          <input type="checkbox" checked={f.taxRelevantForCraftsmanWork} onChange={e => set('taxRelevantForCraftsmanWork', e.target.checked)} style={{ accentColor: 'var(--sage)' }} />
+          Nachweis der Arbeitsleistung nach §35a EStG
+        </label>
         <Field label="Beschreibungszeilen" required error={err.descriptionLines}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {f.descriptionLines.map((ln, i) => (
