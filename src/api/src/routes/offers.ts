@@ -1,33 +1,48 @@
 import express, { Request } from "express";
-import { OfferModel } from "../models/offer";
+import { OfferModel, MainProductSlot } from "../models/offer";
 import { ProductModel } from "../models/product";
+import { computeSystem, computeEconomics, ProductLite } from "../services/offerCalc";
 import { slugify, today } from "./utils";
 
 const router = express.Router();
 
-const SLOTS = ["solarModule", "inverter", "storage", "wallbox", "heatingSystem"];
+const SLOTS: MainProductSlot[] = ["solarModule", "inverter", "storage", "wallbox", "heatingSystem"];
 
 function isExpired(validUntil?: string | null): boolean {
     return !!validUntil && validUntil < today();
 }
 
-function linkedProductCount(products: Record<string, any>): number {
-    return SLOTS.reduce((n, s) => n + (products && products[`${s}Id`] ? 1 : 0), 0);
+function linkedProductCount(mainProducts: Record<string, unknown>): number {
+    return SLOTS.reduce((n, s) => n + (mainProducts && mainProducts[s] ? 1 : 0), 0);
+}
+
+async function withComputed(doc: any) {
+    const o = doc.toJSON ? doc.toJSON() : doc;
+    const ids = SLOTS.map(s => o.mainProducts?.[s]?.productId).filter(Boolean);
+    const products = ids.length ? await ProductModel.find({ _id: { $in: ids } }).exec() : [];
+    const productsById: Record<string, ProductLite> = {};
+    products.forEach(p => { productsById[p.id] = p.toJSON() as unknown as ProductLite; });
+
+    const calculatedSystem = computeSystem(o.mainProducts || {}, productsById);
+    const economics = computeEconomics(calculatedSystem.pvPowerKwp, o.economics, o.priceAmount);
+
+    return { ...o, calculatedSystem, economics: { ...o.economics, ...economics } };
 }
 
 router.get("/", async (req, res) => {
     const { status, q, price, valid } = req.query as Record<string, string | undefined>;
-    let rows = (await OfferModel.find().sort({ updatedAt: -1 }).exec()).map(r => r.toJSON());
+    const rows = await OfferModel.find().sort({ updatedAt: -1 }).exec();
+    let offers = await Promise.all(rows.map(withComputed));
 
     if (status && status !== "all") {
-        rows = rows.filter((o: any) => o.status === status);
+        offers = offers.filter((o: any) => o.status === status);
     }
     if (q) {
         const needle = q.toLowerCase();
-        rows = rows.filter((o: any) => `${o.title} ${o.id} ${o.subtitle}`.toLowerCase().includes(needle));
+        offers = offers.filter((o: any) => `${o.title} ${o.id} ${o.subtitle}`.toLowerCase().includes(needle));
     }
     if (price && price !== "all") {
-        rows = rows.filter((o: any) => {
+        offers = offers.filter((o: any) => {
             const amt = o.priceAmount || 0;
             if (price === "lt15") return amt < 15000;
             if (price === "15to30") return amt >= 15000 && amt <= 30000;
@@ -35,10 +50,10 @@ router.get("/", async (req, res) => {
         });
     }
     if (valid && valid !== "all") {
-        rows = rows.filter((o: any) => (valid === "active" ? !isExpired(o.validUntil) : isExpired(o.validUntil)));
+        offers = offers.filter((o: any) => (valid === "active" ? !isExpired(o.validUntil) : isExpired(o.validUntil)));
     }
 
-    res.json(rows);
+    res.json(offers);
 });
 
 router.get("/next-id", async (req, res) => {
@@ -53,7 +68,7 @@ router.get("/:id", async (req: Request<{ id: string }>, res) => {
     if (!row) {
         return res.status(404).json({ error: "Angebot nicht gefunden." });
     }
-    res.json(row.toJSON());
+    res.json(await withComputed(row));
 });
 
 async function validateOffer(body: any, excludeId: string | undefined, asDraft: boolean) {
@@ -80,15 +95,11 @@ async function validateOffer(body: any, excludeId: string | undefined, asDraft: 
         }
     }
 
-    if (body.priceAmount !== "" && body.priceAmount != null && isNaN(Number(body.priceAmount))) {
-        errors.priceAmount = "Muss eine Zahl sein";
-    }
-
-    const products = body.products || {};
+    const mainProducts = body.mainProducts || {};
     for (const s of SLOTS) {
-        const pid = products[`${s}Id`];
-        if (pid && !(await ProductModel.findById(pid).exec())) {
-            errors.products = `Produkt ${pid} existiert nicht im Katalog`;
+        const ref = mainProducts[s];
+        if (ref?.productId && !(await ProductModel.findById(ref.productId).exec())) {
+            errors.mainProducts = `Produkt ${ref.productId} existiert nicht im Katalog`;
         }
     }
 
@@ -96,26 +107,24 @@ async function validateOffer(body: any, excludeId: string | undefined, asDraft: 
         if (!(body.subtitle || "").trim()) {
             errors.subtitle = "Untertitel erforderlich";
         }
-        if (!(body.description || "").trim()) {
-            errors.description = "Beschreibung erforderlich";
+        if (!(body.shortDescription || "").trim()) {
+            errors.shortDescription = "Kurzbeschreibung erforderlich";
         }
-        if (!(body.priceLabel || "").trim() && (body.priceAmount === "" || body.priceAmount == null)) {
-            errors.priceLabel = "Preis-Label oder Betrag erforderlich";
+        if (body.priceType === "fixed" && (body.priceAmount === "" || body.priceAmount == null)) {
+            errors.priceAmount = "Preisbetrag erforderlich bei Festpreis";
         }
-        if (!body.previewImage) {
-            errors.previewImage = "Vorschaubild erforderlich";
+        if (!body.previewImageUrl) {
+            errors.previewImageUrl = "Vorschaubild erforderlich";
         }
         if (!body.validUntil || isNaN(Date.parse(body.validUntil))) {
             errors.validUntil = "Gültiges Datum erforderlich";
         }
-        if (linkedProductCount(products) === 0) {
-            errors.products = "Mindestens ein Produkt verknüpfen";
+        if (linkedProductCount(mainProducts) === 0) {
+            errors.mainProducts = "Mindestens ein Hauptprodukt auswählen";
         }
-        (body.inclusive || []).forEach((s: any, i: number) => {
-            if (!(s.name || "").trim() || (Number(s.quantity) || 0) <= 0 || !(s.descriptionLines || []).some((l: string) => (l || "").trim())) {
-                errors[`svc${i}`] = "Ungültige Leistungsposition";
-            }
-        });
+        if (mainProducts.solarModule && !((mainProducts.solarModule.quantity || 0) > 0)) {
+            errors.mainProducts = "Modulanzahl muss größer als 0 sein";
+        }
     }
 
     return errors;
@@ -126,22 +135,26 @@ function buildOfferDoc(id: string, b: any) {
         _id: id,
         title: b.title.trim(),
         subtitle: b.subtitle || "",
-        description: b.description || "",
-        conditions: b.conditions || "",
-        validUntil: b.validUntil || null,
+        status: b.status || "Draft",
+        targetCustomer: b.targetCustomer || "",
         designedFor: b.designedFor || "",
-        system: b.system || "",
+        shortDescription: b.shortDescription || "",
+        longDescription: b.longDescription || "",
+        priceType: b.priceType || "fixed",
         priceAmount: b.priceAmount === "" || b.priceAmount == null ? null : Number(b.priceAmount),
         priceCurrency: b.priceCurrency || "EUR",
         priceLabel: b.priceLabel || "",
-        price: b.priceLabel || b.price || (b.priceAmount ? `${Number(b.priceAmount).toLocaleString("de-DE")} €` : ""),
-        link: b.link || "",
+        taxNote: b.taxNote || "",
+        validUntil: b.validUntil || null,
         slug: b.slug || slugify(b.title),
-        previewImage: b.previewImage || null,
-        products: b.products || {},
-        inclusive: b.inclusive || [],
+        publicUrl: b.publicUrl || `lebe-solarenergie.de/angebot/${b.slug || slugify(b.title)}`,
+        previewImageUrl: b.previewImageUrl || null,
+        mainProducts: b.mainProducts || {},
+        systemComponents: b.systemComponents || [],
+        includedServices: b.includedServices || [],
+        requirementsAndExclusions: b.requirementsAndExclusions || [],
+        economics: b.economics || {},
         allowChanges: !!b.allowChanges,
-        status: b.status || "Draft",
     };
 }
 
@@ -154,7 +167,7 @@ router.post("/", async (req, res) => {
     }
 
     const created = await OfferModel.create(buildOfferDoc(b.id.trim(), b));
-    res.status(201).json(created.toJSON());
+    res.status(201).json(await withComputed(created));
 });
 
 router.put("/:id", async (req: Request<{ id: string }>, res) => {
@@ -176,14 +189,14 @@ router.put("/:id", async (req: Request<{ id: string }>, res) => {
     if (newId === existing.id) {
         Object.assign(existing, doc);
         await existing.save();
-        return res.json(existing.toJSON());
+        return res.json(await withComputed(existing));
     }
 
     // `_id` is immutable in Mongo/Cosmos — an ID rename means recreate + delete old.
     const createdAt = existing.createdAt;
     await existing.deleteOne();
     const recreated = await OfferModel.create({ ...doc, createdAt });
-    res.json(recreated.toJSON());
+    res.json(await withComputed(recreated));
 });
 
 router.post("/:id/duplicate", async (req: Request<{ id: string }>, res) => {
@@ -211,7 +224,7 @@ router.post("/:id/duplicate", async (req: Request<{ id: string }>, res) => {
         status: "Draft",
     });
 
-    res.status(201).json(created.toJSON());
+    res.status(201).json(await withComputed(created));
 });
 
 router.delete("/:id", async (req: Request<{ id: string }>, res) => {

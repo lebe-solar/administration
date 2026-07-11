@@ -9,7 +9,13 @@ import categories from "./routes/categories";
 import manufacturers from "./routes/manufacturers";
 import products from "./routes/products";
 import offers from "./routes/offers";
-import offerComponents from "./routes/offerComponents";
+import systemComponents from "./routes/systemComponents";
+import services from "./routes/services";
+import requirementTemplates from "./routes/requirementTemplates";
+import projectInsights from "./routes/projectInsights";
+import contactRequestsPublic from "./routes/contactRequestsPublic";
+import contactRequests from "./routes/contactRequests";
+import employees from "./routes/employees";
 import createUploadsRouter from "./routes/uploads";
 import { configureMongoose } from "./models/mongoose";
 import { seedIfEmpty } from "./seed";
@@ -71,7 +77,15 @@ export const createApp = async (): Promise<Express> => {
     app.use("/manufacturers", ...authMiddlewares, manufacturers);
     app.use("/products", ...authMiddlewares, products);
     app.use("/offers", ...authMiddlewares, offers);
-    app.use("/offer-components", ...authMiddlewares, offerComponents);
+    app.use("/system-components", ...authMiddlewares, systemComponents);
+    app.use("/services", ...authMiddlewares, services);
+    app.use("/requirement-templates", ...authMiddlewares, requirementTemplates);
+    app.use("/project-insights", ...authMiddlewares, projectInsights);
+    // Public submission endpoint (no auth — this is what a future public-site contact
+    // form would call) mounted before the authenticated admin router on the same path.
+    app.use("/contact-requests", contactRequestsPublic);
+    app.use("/contact-requests", ...authMiddlewares, contactRequests);
+    app.use("/employees", ...authMiddlewares, employees);
     app.use("/uploads", ...authMiddlewares, createUploadsRouter(config));
 
     // Swagger UI (left unauthenticated: it only serves the API's static documentation)
