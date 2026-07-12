@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { key: 'contact-requests', label: 'Kontaktanfragen', icon: 'mail', path: '/contact-requests' },
   { key: 'system-components', label: 'Systemkomponenten', icon: 'layers', path: '/system-components' },
   { key: 'services', label: 'Inklusivleistungen', icon: 'check', path: '/services' },
+  { key: 'publication', label: 'Veröffentlichung', icon: 'globe', path: '/publication' },
   { key: 'settings', label: 'Einstellungen', icon: 'settings', path: '/settings' },
 ];
 
