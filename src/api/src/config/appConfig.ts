@@ -14,8 +14,17 @@ export interface AuthConfig {
     clientId: string
 }
 
+export interface GitHubConfig {
+    owner: string
+    repo: string
+    workflowId: string
+    ref: string
+    token: string
+}
+
 export interface AppConfig {
     database: DatabaseConfig
     storage: StorageConfig
     auth: AuthConfig
+    github: GitHubConfig
 }

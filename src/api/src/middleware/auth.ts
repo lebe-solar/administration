@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import jwt, { JwtHeader, SigningKeyCallback } from "jsonwebtoken";
+import jwt, { JwtHeader, JwtPayload, SigningKeyCallback } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { AuthConfig } from "../config/appConfig";
 
@@ -42,11 +42,21 @@ export function createAuthMiddleware(authConfig: AuthConfig): RequestHandler {
             token,
             getSigningKey,
             { algorithms: ["RS256"], audience: authConfig.clientId, issuer },
-            (err) => {
+            (err, decoded) => {
                 if (err) {
                     res.status(401).json({ error: "Ungültiges oder abgelaufenes Token." });
                     return;
                 }
+                // Every route behind this middleware requires the same Entra ID sign-in — this
+                // codebase has no separate admin/viewer role concept, so a validated token is
+                // the only notion of "admin" that exists. Attach the decoded ID token claims so
+                // route handlers can attribute actions (e.g. publication triggeredBy/changedBy).
+                const payload = decoded as JwtPayload | undefined;
+                req.user = {
+                    oid: payload?.oid as string | undefined,
+                    name: payload?.name as string | undefined,
+                    email: (payload?.preferred_username || payload?.email) as string | undefined,
+                };
                 next();
             },
         );

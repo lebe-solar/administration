@@ -1,4 +1,4 @@
-import { AppConfig, AuthConfig, DatabaseConfig, StorageConfig } from "./appConfig";
+import { AppConfig, AuthConfig, DatabaseConfig, GitHubConfig, StorageConfig } from "./appConfig";
 import dotenv from "dotenv";
 import { logger } from "../config/observability";
 import { IConfig } from "config";
@@ -14,6 +14,7 @@ export const getConfig: () => Promise<AppConfig> = async () => {
     const databaseConfig = config.get<DatabaseConfig>("database");
     const storageConfig = config.get<StorageConfig>("storage");
     const authConfig = config.get<AuthConfig>("auth");
+    const githubConfig = config.get<GitHubConfig>("github");
 
     if (!databaseConfig.connectionString) {
         logger.warn("database.connectionString is required but has not been set. Ensure environment variable 'AZURE_COSMOS_CONNECTION_STRING' has been set");
@@ -25,6 +26,11 @@ export const getConfig: () => Promise<AppConfig> = async () => {
 
     if (!authConfig.tenantId || !authConfig.clientId) {
         logger.warn("auth.tenantId/auth.clientId are not set. Ensure environment variables 'AZURE_AD_TENANT_ID' and 'AZURE_AD_CLIENT_ID' have been set so bearer tokens can be validated.");
+    }
+
+    // Never log the token value itself — only whether it's present.
+    if (!githubConfig.token) {
+        logger.warn("github.token is not set. Ensure environment variable 'GITHUB_TOKEN_FOR_WEBCLIENT_REBUILD' has been set so the public WebClient publish/rebuild workflow can be triggered.");
     }
 
     return {
@@ -40,6 +46,13 @@ export const getConfig: () => Promise<AppConfig> = async () => {
         auth: {
             tenantId: authConfig.tenantId,
             clientId: authConfig.clientId,
+        },
+        github: {
+            owner: githubConfig.owner,
+            repo: githubConfig.repo,
+            workflowId: githubConfig.workflowId,
+            ref: githubConfig.ref,
+            token: githubConfig.token,
         },
     };
 };
