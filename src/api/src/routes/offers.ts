@@ -3,8 +3,17 @@ import { OfferModel, MainProductSlot } from "../models/offer";
 import { ProductModel } from "../models/product";
 import { computeSystem, computeEconomics, ProductLite } from "../services/offerCalc";
 import { slugify, today } from "./utils";
+import { changedByFromRequest, fieldsChanged, recordPublicChange } from "../services/publicContentChanges";
 
 const router = express.Router();
+
+// Public-facing fields — a change to any of these on an Active offer affects its public
+// detail page (and the Angebote listing/comparison table).
+const PUBLIC_OFFER_FIELDS = [
+    "title", "subtitle", "targetCustomer", "designedFor", "shortDescription", "longDescription",
+    "priceType", "priceAmount", "priceCurrency", "priceLabel", "taxNote", "validUntil",
+    "previewImageUrl", "mainProducts", "systemComponents", "includedServices", "requirementsAndExclusions",
+];
 
 const SLOTS: MainProductSlot[] = ["solarModule", "inverter", "storage", "wallbox", "heatingSystem"];
 
@@ -167,6 +176,14 @@ router.post("/", async (req, res) => {
     }
 
     const created = await OfferModel.create(buildOfferDoc(b.id.trim(), b));
+
+    if (created.status === "Active") {
+        await recordPublicChange({
+            entityType: "offer", entityId: created.id, entityTitle: created.title,
+            changeType: "published", reason: "offer-published", changedBy: changedByFromRequest(req),
+        });
+    }
+
     res.status(201).json(await withComputed(created));
 });
 
@@ -185,6 +202,27 @@ router.put("/:id", async (req: Request<{ id: string }>, res) => {
 
     const newId = b.id.trim();
     const doc = buildOfferDoc(newId, b);
+
+    const before = existing.toJSON() as Record<string, unknown>;
+    const prevStatus = existing.status;
+    const nextStatus = doc.status;
+    const changedBy = changedByFromRequest(req);
+    if (prevStatus !== "Active" && nextStatus === "Active") {
+        await recordPublicChange({
+            entityType: "offer", entityId: newId, entityTitle: doc.title,
+            changeType: "published", reason: "offer-published", changedBy,
+        });
+    } else if (prevStatus === "Active" && nextStatus === "Active" && fieldsChanged(before, doc, PUBLIC_OFFER_FIELDS)) {
+        await recordPublicChange({
+            entityType: "offer", entityId: newId, entityTitle: doc.title,
+            changeType: "updated", reason: "offer-updated", changedBy,
+        });
+    } else if (prevStatus === "Active" && nextStatus !== "Active") {
+        await recordPublicChange({
+            entityType: "offer", entityId: newId, entityTitle: doc.title,
+            changeType: "hidden", reason: "offer-hidden", changedBy,
+        });
+    }
 
     if (newId === existing.id) {
         Object.assign(existing, doc);
@@ -232,7 +270,14 @@ router.delete("/:id", async (req: Request<{ id: string }>, res) => {
     if (!existing) {
         return res.status(404).json({ error: "Angebot nicht gefunden." });
     }
+    const wasActive = existing.status === "Active";
     await existing.deleteOne();
+    if (wasActive) {
+        await recordPublicChange({
+            entityType: "offer", entityId: existing.id, entityTitle: existing.title,
+            changeType: "deleted", reason: "offer-deleted", changedBy: changedByFromRequest(req),
+        });
+    }
     res.status(204).send();
 });
 

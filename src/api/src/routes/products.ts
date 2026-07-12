@@ -1,8 +1,16 @@
 import express, { Request } from "express";
 import { CATEGORIES, ProductModel, ProductCategory } from "../models/product";
 import { ManufacturerModel } from "../models/manufacturer";
+import { changedByFromRequest, fieldsChanged, recordPublicChange } from "../services/publicContentChanges";
 
 const router = express.Router();
+
+// Public-facing fields — a change to any of these on an Active product affects the public
+// WebClient's Produkte page (and any offer/product-card surfaces that embed them).
+const PUBLIC_PRODUCT_FIELDS = [
+    "category", "Header", "Beschreibung", "Hersteller", "manufacturer_id", "Garantie",
+    "Power", "Unit", "Logo", "image", "Spezifikation", "panelHeightMeters", "panelWidthMeters",
+];
 
 router.get("/", async (req, res) => {
     const { category, manufacturer_id, status, q } = req.query as Record<string, string | undefined>;
@@ -136,6 +144,13 @@ router.post("/", async (req, res) => {
         panelWidthMeters: isSolar ? Number(b.panelWidthMeters) : null,
     });
 
+    if (created.Status === "Active") {
+        await recordPublicChange({
+            entityType: "product", entityId: created.id, entityTitle: created.Header,
+            changeType: "published", reason: "product-published", changedBy: changedByFromRequest(req),
+        });
+    }
+
     res.status(201).json(created.toJSON());
 });
 
@@ -177,6 +192,27 @@ router.put("/:id", async (req: Request<{ id: string }>, res) => {
         panelWidthMeters: isSolar ? Number(b.panelWidthMeters) : null,
     };
 
+    const before = existing.toJSON() as Record<string, unknown>;
+    const prevStatus = existing.Status;
+    const nextStatus = fields.Status;
+    const changedBy = changedByFromRequest(req);
+    if (prevStatus !== "Active" && nextStatus === "Active") {
+        await recordPublicChange({
+            entityType: "product", entityId: newId, entityTitle: fields.Header,
+            changeType: "published", reason: "product-published", changedBy,
+        });
+    } else if (prevStatus === "Active" && nextStatus === "Active" && fieldsChanged(before, fields, PUBLIC_PRODUCT_FIELDS)) {
+        await recordPublicChange({
+            entityType: "product", entityId: newId, entityTitle: fields.Header,
+            changeType: "updated", reason: "product-updated", changedBy,
+        });
+    } else if (prevStatus === "Active" && nextStatus !== "Active") {
+        await recordPublicChange({
+            entityType: "product", entityId: newId, entityTitle: fields.Header,
+            changeType: "hidden", reason: "product-hidden", changedBy,
+        });
+    }
+
     if (newId === existing.id) {
         Object.assign(existing, fields);
         await existing.save();
@@ -196,7 +232,14 @@ router.delete("/:id", async (req: Request<{ id: string }>, res) => {
     if (!existing) {
         return res.status(404).json({ error: "Produkt nicht gefunden." });
     }
+    const wasActive = existing.Status === "Active";
     await existing.deleteOne();
+    if (wasActive) {
+        await recordPublicChange({
+            entityType: "product", entityId: existing.id, entityTitle: existing.Header,
+            changeType: "deleted", reason: "product-deleted", changedBy: changedByFromRequest(req),
+        });
+    }
     res.status(204).send();
 });
 

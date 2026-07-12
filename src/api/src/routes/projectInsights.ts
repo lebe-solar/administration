@@ -1,7 +1,17 @@
 import express, { Request } from "express";
 import { ProjectInsightModel } from "../models/projectInsight";
+import { changedByFromRequest, fieldsChanged, recordPublicChange } from "../services/publicContentChanges";
 
 const router = express.Router();
+
+// Public-facing fields — a change to any of these on a Veröffentlicht project insight affects
+// whichever public surfaces its `visibility` flags expose it on (landing page, Über uns, the
+// project overview, offer detail pages).
+const PUBLIC_PROJECT_INSIGHT_FIELDS = [
+    "title", "locationLabel", "buildingType", "customerType", "projectYear", "projectStatus",
+    "mainImage", "imageAlt", "galleryImages", "badges", "shortDescription", "visibility",
+    "featured", "sortOrder", "publishedFrom", "publishedUntil",
+];
 
 router.get("/", async (req, res) => {
     const { status, buildingType, customerType, q } = req.query as Record<string, string | undefined>;
@@ -86,6 +96,14 @@ router.post("/", async (req, res) => {
 
     const id = (b.id || "").trim() || `PRJ-${Date.now()}`;
     const created = await ProjectInsightModel.create(buildDoc(id, b));
+
+    if (created.status === "Veröffentlicht") {
+        await recordPublicChange({
+            entityType: "projectInsight", entityId: created.id, entityTitle: created.title,
+            changeType: "published", reason: "projectInsight-published", changedBy: changedByFromRequest(req),
+        });
+    }
+
     res.status(201).json(created.toJSON());
 });
 
@@ -100,8 +118,34 @@ router.put("/:id", async (req: Request<{ id: string }>, res) => {
         return res.status(422).json({ errors });
     }
 
-    Object.assign(existing, buildDoc(existing.id, req.body));
+    const before = existing.toJSON() as Record<string, unknown>;
+    const doc = buildDoc(existing.id, req.body);
+    const prevStatus = before.status;
+    const nextStatus = doc.status;
+
+    Object.assign(existing, doc);
     await existing.save();
+
+    const changedBy = changedByFromRequest(req);
+    if (prevStatus !== "Veröffentlicht" && nextStatus === "Veröffentlicht") {
+        await recordPublicChange({
+            entityType: "projectInsight", entityId: existing.id, entityTitle: existing.title,
+            changeType: "published", reason: "projectInsight-published", changedBy,
+        });
+    } else if (prevStatus === "Veröffentlicht" && nextStatus === "Veröffentlicht" && fieldsChanged(before, doc, PUBLIC_PROJECT_INSIGHT_FIELDS)) {
+        await recordPublicChange({
+            entityType: "projectInsight", entityId: existing.id, entityTitle: existing.title,
+            changeType: "updated", reason: "projectInsight-updated", changedBy,
+        });
+    } else if (prevStatus === "Veröffentlicht" && nextStatus !== "Veröffentlicht") {
+        await recordPublicChange({
+            entityType: "projectInsight", entityId: existing.id, entityTitle: existing.title,
+            changeType: nextStatus === "Archiviert" ? "archived" : "hidden",
+            reason: nextStatus === "Archiviert" ? "projectInsight-archived" : "projectInsight-hidden",
+            changedBy,
+        });
+    }
+
     res.json(existing.toJSON());
 });
 
@@ -132,8 +176,15 @@ router.patch("/:id/archive", async (req: Request<{ id: string }>, res) => {
     if (!existing) {
         return res.status(404).json({ error: "Projekt nicht gefunden." });
     }
+    const wasPublished = existing.status === "Veröffentlicht";
     existing.status = "Archiviert";
     await existing.save();
+    if (wasPublished) {
+        await recordPublicChange({
+            entityType: "projectInsight", entityId: existing.id, entityTitle: existing.title,
+            changeType: "archived", reason: "projectInsight-archived", changedBy: changedByFromRequest(req),
+        });
+    }
     res.json(existing.toJSON());
 });
 
@@ -142,7 +193,14 @@ router.delete("/:id", async (req: Request<{ id: string }>, res) => {
     if (!existing) {
         return res.status(404).json({ error: "Projekt nicht gefunden." });
     }
+    const wasPublished = existing.status === "Veröffentlicht";
     await existing.deleteOne();
+    if (wasPublished) {
+        await recordPublicChange({
+            entityType: "projectInsight", entityId: existing.id, entityTitle: existing.title,
+            changeType: "deleted", reason: "projectInsight-deleted", changedBy: changedByFromRequest(req),
+        });
+    }
     res.status(204).send();
 });
 
