@@ -24,6 +24,9 @@ param webClientServiceName string = ''
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
+@description('Type of the principal to grant storage access to (for example User or ServicePrincipal)')
+param principalType string = ''
+
 @description('Entra ID (Azure AD) tenant id used to sign in to the admin app')
 param azureAdTenantId string = '0b0e365f-09be-4291-8f1f-082f5929872d'
 
@@ -177,7 +180,7 @@ module storageRolePrincipal './app/storage-roles-avm.bicep' = if (!empty(princip
   params: {
     storageAccountName: storage.outputs.name
     principalId: principalId
-    principalType: 'User'
+    principalType: !empty(principalType) ? principalType : 'User'
   }
 }
 
