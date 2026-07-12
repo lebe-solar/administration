@@ -43,9 +43,9 @@ jobs:
   publish-web-client:
     runs-on: ubuntu-latest
     env:
-      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID || secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID || secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID || secrets.AZURE_SUBSCRIPTION_ID }}
       AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
     steps:
       - name: Checkout
@@ -70,9 +70,9 @@ jobs:
       - name: Log in to Azure (CLI)
         uses: azure/login@v2
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ vars.AZURE_CLIENT_ID || secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID || secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID || secrets.AZURE_SUBSCRIPTION_ID }}
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Resolve Cosmos DB connection string
@@ -101,8 +101,8 @@ jobs:
             echo "AZURE_COSMOS_CONNECTION_STRING=$COSMOS_CONNECTION_STRING" >> "$GITHUB_ENV"
           fi
 
-          if [ -n "${{ vars.AZURE_COSMOS_DATABASE_NAME }}" ]; then
-            echo "AZURE_COSMOS_DATABASE_NAME=${{ vars.AZURE_COSMOS_DATABASE_NAME }}" >> "$GITHUB_ENV"
+          if [ -n "${{ vars.AZURE_COSMOS_DATABASE_NAME || secrets.AZURE_COSMOS_DATABASE_NAME }}" ]; then
+            echo "AZURE_COSMOS_DATABASE_NAME=${{ vars.AZURE_COSMOS_DATABASE_NAME || secrets.AZURE_COSMOS_DATABASE_NAME }}" >> "$GITHUB_ENV"
           else
             echo "AZURE_COSMOS_DATABASE_NAME=LeBeAdmin" >> "$GITHUB_ENV"
           fi
@@ -191,14 +191,21 @@ jobs:
         run: |
           set -euo pipefail
           export AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID:-$(az account show --query id -o tsv)}"
-          export AZURE_ENV_NAME="${AZURE_ENV_NAME:-${{ vars.AZURE_ENV_NAME }}}"
-          export AZURE_LOCATION="${AZURE_LOCATION:-${{ vars.AZURE_LOCATION }}}"
+          export AZURE_ENV_NAME="${AZURE_ENV_NAME:-${{ vars.AZURE_ENV_NAME || secrets.AZURE_ENV_NAME }}}"
+          export AZURE_LOCATION="${AZURE_LOCATION:-${{ vars.AZURE_LOCATION || secrets.AZURE_LOCATION }}}"
+          if [ -z "$AZURE_LOCATION" ]; then
+            AZURE_LOCATION="$(grep -E '^AZURE_LOCATION=' .azure/lebe-solar/.env 2>/dev/null | head -n1 | cut -d= -f2 | tr -d '"' || true)"
+          fi
+          if [ -z "$AZURE_LOCATION" ]; then
+            AZURE_LOCATION="westeurope"
+          fi
           echo "AZURE_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID" >> "$GITHUB_ENV"
+          echo "AZURE_LOCATION=$AZURE_LOCATION" >> "$GITHUB_ENV"
           azd provision --no-prompt
         env:
-          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
-          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
-          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME || secrets.AZURE_ENV_NAME }}
+          AZURE_LOCATION: ${{ vars.AZURE_LOCATION || secrets.AZURE_LOCATION }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID || secrets.AZURE_SUBSCRIPTION_ID }}
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
 
       - name: Deploy webclient only
@@ -206,8 +213,15 @@ jobs:
         run: |
           set -euo pipefail
           export AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID:-$(az account show --query id -o tsv)}"
-          export AZURE_ENV_NAME="${AZURE_ENV_NAME:-${{ vars.AZURE_ENV_NAME }}}"
-          export AZURE_LOCATION="${AZURE_LOCATION:-${{ vars.AZURE_LOCATION }}}"
+          export AZURE_ENV_NAME="${AZURE_ENV_NAME:-${{ vars.AZURE_ENV_NAME || secrets.AZURE_ENV_NAME }}}"
+          export AZURE_LOCATION="${AZURE_LOCATION:-${{ vars.AZURE_LOCATION || secrets.AZURE_LOCATION }}}"
+          if [ -z "$AZURE_LOCATION" ]; then
+            AZURE_LOCATION="$(grep -E '^AZURE_LOCATION=' .azure/lebe-solar/.env 2>/dev/null | head -n1 | cut -d= -f2 | tr -d '"' || true)"
+          fi
+          if [ -z "$AZURE_LOCATION" ]; then
+            AZURE_LOCATION="westeurope"
+          fi
+          echo "AZURE_LOCATION=$AZURE_LOCATION" >> "$GITHUB_ENV"
           azd deploy webclient --no-prompt
         env:
           AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
