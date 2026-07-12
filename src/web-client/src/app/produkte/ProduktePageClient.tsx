@@ -115,11 +115,14 @@ export function ProduktePageClient({ data }: { data: ProductsPageData }) {
                       key={p.id}
                       image={p.image || undefined}
                       imageAlt={p.name}
+                      logo={p.logo || undefined}
+                      logoAlt={p.manufacturer}
                       name={p.name}
                       description={p.beschreibung}
                       power={p.power}
                       unit={p.unit}
                       guarantee={p.warranty}
+                      datasheetHref={p.specPdf || undefined}
                     />
                   ))}
                 </div>

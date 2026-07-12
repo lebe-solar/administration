@@ -222,9 +222,9 @@ export default function ProductForm() {
           </Card>
 
           <Card>
-            <SectionTitle icon="image">Produktfoto</SectionTitle>
-            <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--gray-mid)' }}>Echtes Produktfoto — unabhängig vom Herstellerlogo, wird auf der öffentlichen Produktkarte gezeigt.</p>
-            <ImageUpload value={f.image} onChange={v => set('image', v)} label="Produktfoto hochladen" />
+            <SectionTitle icon="image">Product Picture</SectionTitle>
+            <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--gray-mid)' }}>Echtes Produktfoto für die öffentliche Produktkarte — nicht zu verwechseln mit dem Herstellerlogo (siehe &quot;Logo&quot; weiter rechts).</p>
+            <ImageUpload value={f.image} onChange={v => set('image', v)} label="Product picture hochladen" />
           </Card>
         </div>
 
@@ -241,8 +241,8 @@ export default function ProductForm() {
             </div>
           </Card>
           <Card>
-            <SectionTitle icon="factory">Logo</SectionTitle>
-            <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--gray-mid)' }}>Vom Hersteller übernommen. Optional ersetzen.</p>
+            <SectionTitle icon="factory">Manufacturer Logo</SectionTitle>
+            <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--gray-mid)' }}>Markenlogo des Herstellers, kein Produktfoto. Vom Hersteller übernommen, optional ersetzen.</p>
             <LogoUpload value={f.Logo} name={f.Hersteller || selMan?.name} onChange={v => set('Logo', v)} />
           </Card>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
