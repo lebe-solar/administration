@@ -13,7 +13,12 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-  - task: setup-azd@1 
+  - task: UseNode@2
+    displayName: Use Node.js 20.x
+    inputs:
+      version: '20.x'
+
+  - task: setup-azd@1
     displayName: Install azd
 
   # If you can't install above task in your organization, you can comment it and uncomment below task to install azd
@@ -50,7 +55,13 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        azd deploy --no-prompt
+        # Deployed one service at a time (rather than `azd deploy --no-prompt`, which
+        # builds all services concurrently) — the hosted agent's memory is not enough
+        # to run api's tsc build, web's vite build, and webclient's next build at once,
+        # which was killing the api build with SIGKILL.
+        azd deploy api --no-prompt
+        azd deploy web --no-prompt
+        azd deploy webclient --no-prompt
     env:
       AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
       AZURE_ENV_NAME: $(AZURE_ENV_NAME)
