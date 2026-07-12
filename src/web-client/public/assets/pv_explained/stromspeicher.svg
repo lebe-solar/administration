@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="340" height="400" viewBox="0 0 340 400">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rechteck_341" data-name="Rechteck 341" width="91.838" height="183.678" fill="none"></rect>
+    </clipPath>
+  </defs>
+  <g id="Gruppe_858" data-name="Gruppe 858" transform="translate(-142 -3650)">
+    <rect id="Bild_17" data-name="Bild 17" width="340" height="400" transform="translate(142 3650)" fill="#f8f8f8"></rect>
+    <rect id="Bild_36" data-name="Bild 36" width="340" height="400" transform="translate(142 3650)" fill="#9fb2a1"></rect>
+    <g id="Rechteck_305" data-name="Rechteck 305" transform="translate(172 3676)" fill="none" stroke="red" stroke-width="1">
+      <rect width="282" height="349" stroke="none"></rect>
+      <rect x="0.5" y="0.5" width="281" height="348" fill="none"></rect>
+    </g>
+    <g id="Gruppe_888" data-name="Gruppe 888" transform="translate(267.081 3758.661)">
+      <g id="Gruppe_887" data-name="Gruppe 887" clip-path="url(#clip-path)">
+        <path id="Pfad_281" data-name="Pfad 281" d="M18.366,27.561H36.733V18.379H55.1v9.182H73.467V165.312h-55.1V27.561M0,22.965V169.9a13.779,13.779,0,0,0,13.779,13.779h64.28A13.779,13.779,0,0,0,91.838,169.9V22.965A13.779,13.779,0,0,0,78.059,9.186H73.467V6.89A6.89,6.89,0,0,0,66.577,0H25.254a6.889,6.889,0,0,0-6.889,6.89v2.3h-4.59A13.779,13.779,0,0,0,0,22.965M27.55,156.128H64.283V36.745H27.55Z" fill="#ffe500"></path>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,72 @@
+<svg id="Gruppe_280" data-name="Gruppe 280" xmlns="http://www.w3.org/2000/svg" width="670" height="570" viewBox="0 0 670 570">
+  <rect id="Bild_16" data-name="Bild 16" width="670" height="570" fill="#9fb2a1"></rect>
+  <g id="Gruppe_178" data-name="Gruppe 178" transform="translate(53.981 67)">
+    <ellipse id="Ellipse_21" data-name="Ellipse 21" cx="33.644" cy="33.644" rx="33.644" ry="33.644" transform="translate(53.572 53.619)" fill="#ffed01"></ellipse>
+    <g id="Gruppe_136" data-name="Gruppe 136" transform="translate(80.515 0)">
+      <g id="Gruppe_134" data-name="Gruppe 134" transform="translate(0 0)">
+        <line id="Linie_72" data-name="Linie 72" y2="42.9" transform="translate(6.702 0)" fill="#ffe800"></line>
+        <rect id="Rechteck_84" data-name="Rechteck 84" width="13.403" height="42.9" rx="6.702" fill="#ffed01"></rect>
+      </g>
+      <g id="Gruppe_135" data-name="Gruppe 135" transform="translate(0 132.879)">
+        <line id="Linie_73" data-name="Linie 73" y2="42.9" transform="translate(6.702 0)" fill="#ffe800"></line>
+        <rect id="Rechteck_85" data-name="Rechteck 85" width="13.403" height="42.9" rx="6.702" fill="#ffed01"></rect>
+      </g>
+    </g>
+    <g id="Gruppe_139" data-name="Gruppe 139" transform="translate(20.586 21.282)">
+      <g id="Gruppe_137" data-name="Gruppe 137" transform="translate(0 93.96)">
+        <line id="Linie_74" data-name="Linie 74" y1="30.335" x2="30.335" transform="translate(4.739 4.739)" fill="#ffe800"></line>
+        <rect id="Rechteck_86" data-name="Rechteck 86" width="42.9" height="13.403" rx="6.702" transform="translate(0 30.335) rotate(-45)" fill="#ffed01"></rect>
+      </g>
+      <g id="Gruppe_138" data-name="Gruppe 138" transform="translate(93.96 0)">
+        <line id="Linie_75" data-name="Linie 75" y1="30.335" x2="30.335" transform="translate(4.739 4.739)" fill="#ffe800"></line>
+        <rect id="Rechteck_87" data-name="Rechteck 87" width="42.9" height="13.403" rx="6.702" transform="translate(0 30.335) rotate(-45)" fill="#ffed01"></rect>
+      </g>
+    </g>
+    <g id="Gruppe_142" data-name="Gruppe 142" transform="translate(21.003 20.864)">
+      <g id="Gruppe_140" data-name="Gruppe 140" transform="translate(0 0)">
+        <line id="Linie_76" data-name="Linie 76" x2="30.335" y2="30.335" transform="translate(4.739 4.739)" fill="#ffe800"></line>
+        <rect id="Rechteck_88" data-name="Rechteck 88" width="13.403" height="42.9" rx="6.702" transform="matrix(0.707, -0.707, 0.707, 0.707, 0, 9.478)" fill="#ffed01"></rect>
+      </g>
+      <g id="Gruppe_141" data-name="Gruppe 141" transform="translate(93.96 93.96)">
+        <line id="Linie_77" data-name="Linie 77" x2="30.335" y2="30.335" transform="translate(4.739 4.739)" fill="#ffe800"></line>
+        <rect id="Rechteck_89" data-name="Rechteck 89" width="13.403" height="42.9" rx="6.702" transform="translate(0 9.477) rotate(-45)" fill="#ffed01"></rect>
+      </g>
+    </g>
+    <g id="Gruppe_145" data-name="Gruppe 145" transform="translate(0 81.049)">
+      <g id="Gruppe_143" data-name="Gruppe 143">
+        <line id="Linie_78" data-name="Linie 78" x2="42.9" transform="translate(0 6.702)" fill="#ffe800"></line>
+        <rect id="Rechteck_90" data-name="Rechteck 90" width="42.9" height="13.403" rx="6.702" transform="translate(0)" fill="#ffed01"></rect>
+      </g>
+      <g id="Gruppe_144" data-name="Gruppe 144" transform="translate(132.879)">
+        <line id="Linie_79" data-name="Linie 79" x2="42.9" transform="translate(0 6.702)" fill="#ffe800"></line>
+        <rect id="Rechteck_91" data-name="Rechteck 91" width="42.9" height="13.403" rx="6.702" transform="translate(0)" fill="#ffed01"></rect>
+      </g>
+    </g>
+  </g>
+  <g id="Gruppe_179" data-name="Gruppe 179" transform="translate(245.157 325.096)">
+    <path id="Pfad_90" data-name="Pfad 90" d="M1729.732,423.532h-.012l-16.63.017V412.435h-44.373V423.6l-16.633.017a5.547,5.547,0,0,0-5.54,5.543l-.017,11a5.548,5.548,0,0,0,5.543,5.554h.01l77.641-.09a5.547,5.547,0,0,0,5.54-5.54l.014-11A5.549,5.549,0,0,0,1729.732,423.532Z" transform="translate(-1579.962 -268.218)" fill="#ffed01"></path>
+    <path id="Pfad_91" data-name="Pfad 91" d="M1559,135.2a11.24,11.24,0,0,0-11.143,9.27c-3.085,18.176-5.665,33.4-7.834,46.147h22.91v0h35.6v0h.052l5.883-55.417Z" transform="translate(-1528.86 -135.199)" fill="#ffed01"></path>
+    <path id="Pfad_92" data-name="Pfad 92" d="M1874.24,274.729h-22.911v0h-36.709l4.059,38.283-.006.007,2.365,22.252h50.137a11.205,11.205,0,0,0,11.3-11.023C1882.48,323.159,1883.167,327.243,1874.24,274.729Z" transform="translate(-1660.614 -202.145)" fill="#ffed01"></path>
+    <path id="Pfad_93" data-name="Pfad 93" d="M1864.225,190.616c-2.164-12.755-4.75-27.971-7.834-46.147h.005a11.236,11.236,0,0,0-11.147-9.27H1799.83l5.873,55.417Z" transform="translate(-1653.517 -135.199)" fill="#ffed01"></path>
+    <path id="Pfad_94" data-name="Pfad 94" d="M1732,313.083h0l-4.062-38.356h-51.583l-4.069,38.356h0l-2.356,22.186h64.426Z" transform="translate(-1591.186 -202.145)" fill="#ffed01"></path>
+    <path id="Pfad_95" data-name="Pfad 95" d="M1730.2,157.4h0l-2.356-22.2h-36.18l-2.353,22.188h0l-3.527,33.228h47.942Z" transform="translate(-1598.795 -135.2)" fill="#ffed01"></path>
+    <path id="Pfad_96" data-name="Pfad 96" d="M1582.393,313.081l4.071-38.354h-36.741v0h-22.909c-8.922,52.5-8.235,48.4-8.235,49.445a11.2,11.2,0,0,0,11.3,11.1h50.152l2.357-22.186" transform="translate(-1518.567 -202.145)" fill="#ffed01"></path>
+  </g>
+  <g id="JzlN5r" transform="translate(504.902 97.971)">
+    <g id="Gruppe_120" data-name="Gruppe 120" transform="translate(0 0)">
+      <path id="Pfad_78" data-name="Pfad 78" d="M332.779,957.37c-1.915-1.209-2.182-2.05-1.4-4.351q8.666-25.534,17.326-51.07c.133-.391.229-.8.4-1.4h-1.437q-11.724,0-23.448,0c-2.672,0-3.745-1.676-2.591-4.1q15.906-33.451,31.822-66.9a3.193,3.193,0,0,1,3.183-2.013c10.942.026,21.885.01,32.827.016,2.913,0,4.066,2.036,2.581,4.581q-11.705,20.052-23.429,40.094c-.293.5-.567,1.013-.935,1.674.578.028,1.017.067,1.457.068q11.217.006,22.434,0a9.908,9.908,0,0,1,1.013.009,3.256,3.256,0,0,1,2.812,1.863,2.638,2.638,0,0,1-.548,2.93q-4.591,6.056-9.179,12.115-24.445,32.252-48.91,64.489a15.758,15.758,0,0,1-2.2,2Z" transform="translate(-321.17 -827.534)" fill="#ffed01"></path>
+    </g>
+  </g>
+  <g id="Gruppe_229" data-name="Gruppe 229">
+    <g id="Gruppe_228" data-name="Gruppe 228" transform="translate(190.52 285) rotate(90)">
+      <path id="Pfad_107" data-name="Pfad 107" d="M100.984,0V48.648H0" transform="translate(2.44)" fill="none" stroke="#ffed01" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
+    </g>
+    <path id="Pfad_162" data-name="Pfad 162" d="M22.015,0V21.041H0" transform="translate(168.671 388.768) rotate(-45)" fill="none" stroke="#ffed01" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
+  </g>
+  <g id="Gruppe_230" data-name="Gruppe 230" transform="translate(216.814 530.424) rotate(-90)">
+    <g id="Gruppe_228-2" data-name="Gruppe 228" transform="translate(190.52 287.441) rotate(90)">
+      <path id="Pfad_107-2" data-name="Pfad 107" d="M42.888,0V90.916H0" transform="translate(0 -42.268)" fill="none" stroke="#ffed01" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
+    </g>
+    <path id="Pfad_162-2" data-name="Pfad 162" d="M22.015,0V21.041H0" transform="translate(212.007 330.673) rotate(-45)" fill="none" stroke="#ffed01" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
+  </g>
+</svg>

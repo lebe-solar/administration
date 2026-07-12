@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <clipPath id="clip-Zeichenfläche_14">
+      <rect width="80" height="80"></rect>
+    </clipPath>
+  </defs>
+  <g id="Zeichenfläche_14" data-name="Zeichenfläche – 14" clip-path="url(#clip-Zeichenfläche_14)">
+    <rect width="80" height="80" fill="#fff"></rect>
+    <g id="Gruppe_291" data-name="Gruppe 291">
+      <path id="Pfad_194" data-name="Pfad 194" d="M-736.3,848.475" transform="translate(779.91 -822.207)" fill="none" stroke="#fff" stroke-linecap="round" stroke-miterlimit="10" stroke-width="17"></path>
+      <g id="Gruppe_275" data-name="Gruppe 275" transform="translate(8627.561 18776.582)">
+        <rect id="Rechteck_117" data-name="Rechteck 117" width="28.119" height="48.277" rx="5.109" transform="translate(-8611.699 -18725.281) rotate(-90)" fill="#9fb2a1"></rect>
+        <line id="Linie_103" data-name="Linie 103" x2="31.403" transform="translate(-8603.372 -18745.963)" fill="none" stroke="#fff" stroke-linecap="round" stroke-miterlimit="10" stroke-width="3"></line>
+        <line id="Linie_104" data-name="Linie 104" x2="31.403" transform="translate(-8603.404 -18739.916)" fill="none" stroke="#fff" stroke-linecap="round" stroke-miterlimit="10" stroke-width="3"></line>
+        <path id="Pfad_195" data-name="Pfad 195" d="M7.623,16.49a.751.751,0,0,1-1.47,0L3.132,9.14.116,1.8C-.213,1,.2,0,.851,0H12.924c.655,0,1.064,1,.735,1.8L10.644,9.14Z" transform="translate(-8598.595 -18734.105) rotate(31)" fill="#9fb2a1"></path>
+        <line id="Linie_105" data-name="Linie 105" x2="16.737" transform="translate(-8603.634 -18733.535)" fill="none" stroke="#fff" stroke-linecap="round" stroke-miterlimit="10" stroke-width="3"></line>
+      </g>
+    </g>
+  </g>
+</svg>

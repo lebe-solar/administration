@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="80" height="80" viewBox="0 0 80 80">
+  <defs>
+    <clipPath id="clip-Zeichenfläche_13">
+      <rect width="80" height="80"></rect>
+    </clipPath>
+  </defs>
+  <g id="Zeichenfläche_13" data-name="Zeichenfläche – 13" clip-path="url(#clip-Zeichenfläche_13)">
+    <rect width="80" height="80" fill="#fff"></rect>
+    <g id="Gruppe_290" data-name="Gruppe 290">
+      <rect id="Rechteck_116" data-name="Rechteck 116" width="29.162" height="37.719" rx="2" transform="translate(23.465 21.045)" fill="#9fb2a1"></rect>
+      <g id="Gruppe_272" data-name="Gruppe 272" transform="translate(29.145 28.158)">
+        <line id="Linie_99" data-name="Linie 99" x2="17.803" transform="translate(0 0)" fill="none" stroke="#fff" stroke-linecap="round" stroke-miterlimit="10" stroke-width="3"></line>
+        <line id="Linie_100" data-name="Linie 100" x2="17.803" transform="translate(0 6.79)" fill="none" stroke="#fff" stroke-linecap="round" stroke-miterlimit="10" stroke-width="3"></line>
+        <line id="Linie_102" data-name="Linie 102" y1="0.075" x2="8.545" transform="translate(0 13.579)" fill="none" stroke="#fff" stroke-linecap="round" stroke-miterlimit="10" stroke-width="3"></line>
+      </g>
+      <g id="Gruppe_273" data-name="Gruppe 273" transform="translate(40.375 42.527)">
+        <ellipse id="Ellipse_40" data-name="Ellipse 40" cx="11.499" cy="11.499" rx="11.499" ry="11.499" transform="translate(0 0)" fill="#9fb2a1" stroke="#fff" stroke-miterlimit="10" stroke-width="4"></ellipse>
+        <path id="Pfad_190" data-name="Pfad 190" d="M0,5.215,4.061,8.181,8.7,0" transform="translate(6.604 7.258) rotate(2)" fill="#9fb2a1" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="3"></path>
+      </g>
+    </g>
+  </g>
+</svg>

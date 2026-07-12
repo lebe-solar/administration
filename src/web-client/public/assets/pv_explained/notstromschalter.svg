@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="340" height="400" viewBox="0 0 340 400">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rechteck_346" data-name="Rechteck 346" width="188.266" height="126.379" fill="none" stroke="#9fb2a1" stroke-width="1"></rect>
+    </clipPath>
+  </defs>
+  <g id="Gruppe_858" data-name="Gruppe 858" transform="translate(-142 -3650)">
+    <rect id="Bild_17" data-name="Bild 17" width="340" height="400" transform="translate(142 3650)" fill="#f8f8f8"></rect>
+    <rect id="Bild_40" data-name="Bild 40" width="340" height="400" transform="translate(142 3650)" fill="#9fb2a1"></rect>
+    <g id="Gruppe_898" data-name="Gruppe 898" transform="translate(217.867 3791.618)">
+      <g id="Gruppe_897" data-name="Gruppe 897" clip-path="url(#clip-path)">
+        <path id="Pfad_320" data-name="Pfad 320" d="M173.768,123.673H14.5A14.5,14.5,0,0,1,0,109.175V14.5A14.5,14.5,0,0,1,14.5,0h159.27a14.5,14.5,0,0,1,14.5,14.5v94.677a14.5,14.5,0,0,1-14.5,14.5" transform="translate(0 0)" fill="#ffe500"></path>
+        <path id="Pfad_321" data-name="Pfad 321" d="M141.421,54.722a50.021,50.021,0,1,1-55.9-43.355,50.021,50.021,0,0,1,55.9,43.355" transform="translate(4.294 1.128)" fill="#9fb2a1"></path>
+        <path id="Pfad_322" data-name="Pfad 322" d="M130.533,37.425,116.625,77.949a3.043,3.043,0,0,1-1.137,1.506L59.455,118.539a3.041,3.041,0,0,1-3.951-.408L41.358,103.116a3.037,3.037,0,0,1-.182-3.956L83.41,45.136a3.032,3.032,0,0,1,1.651-1.074l41.854-10.57a3.04,3.04,0,0,1,3.618,3.934" transform="translate(4.167 3.434)" fill="#ffe500"></path>
+        <path id="Pfad_323" data-name="Pfad 323" d="M130.533,37.425,116.625,77.949a3.043,3.043,0,0,1-1.137,1.506L59.455,118.539a3.041,3.041,0,0,1-3.951-.408L41.358,103.116a3.037,3.037,0,0,1-.182-3.956L83.41,45.136a3.032,3.032,0,0,1,1.651-1.074l41.854-10.57A3.04,3.04,0,0,1,130.533,37.425Z" transform="translate(4.167 3.434)" fill="none" stroke="#9fb2a1" stroke-miterlimit="10" stroke-width="7"></path>
+        <line id="Linie_150" data-name="Linie 150" y2="17.774" transform="translate(167.972 16.365)" fill="none" stroke="#9fb2a1" stroke-miterlimit="10" stroke-width="5"></line>
+        <path id="Pfad_324" data-name="Pfad 324" d="M31.355,23.088c0,4.324-2.652,7.829-5.924,7.829s-5.925-3.5-5.925-7.829,2.653-7.829,5.925-7.829S31.355,18.764,31.355,23.088Z" transform="translate(2.005 1.569)" fill="none" stroke="#9fb2a1" stroke-miterlimit="10" stroke-width="4"></path>
+      </g>
+    </g>
+  </g>
+</svg>

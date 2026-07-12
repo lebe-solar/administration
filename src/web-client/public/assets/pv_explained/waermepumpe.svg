@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="340" height="400" viewBox="0 0 340 400">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rechteck_316" data-name="Rechteck 316" width="172.43" height="110.285" fill="none"></rect>
+    </clipPath>
+  </defs>
+  <g id="Gruppe_859" data-name="Gruppe 859" transform="translate(-142 -3650)">
+    <rect id="Bild_17" data-name="Bild 17" width="340" height="400" transform="translate(142 3650)" fill="#f8f8f8"></rect>
+    <rect id="Bild_44" data-name="Bild 44" width="340" height="400" transform="translate(142 3650)" fill="#9fb2a1"></rect>
+    <g id="Rechteck_360" data-name="Rechteck 360" transform="translate(171 3679)" fill="none" stroke="red" stroke-width="1">
+      <rect width="282" height="349" stroke="none"></rect>
+      <rect x="0.5" y="0.5" width="281" height="348" fill="none"></rect>
+    </g>
+    <g id="Gruppe_918" data-name="Gruppe 918" transform="translate(226 3795)">
+      <g id="Gruppe_866" data-name="Gruppe 866" clip-path="url(#clip-path)">
+        <path id="Pfad_211" data-name="Pfad 211" d="M162.6,110.285H9.835A9.835,9.835,0,0,1,0,100.45V9.835A9.835,9.835,0,0,1,9.835,0H162.6a9.835,9.835,0,0,1,9.835,9.835V100.45a9.835,9.835,0,0,1-9.835,9.835" fill="#ffe500"></path>
+        <path id="Pfad_212" data-name="Pfad 212" d="M101.875,55.346A47.146,47.146,0,1,1,54.729,8.2a47.146,47.146,0,0,1,47.146,47.146" fill="#91a490"></path>
+        <circle id="Ellipse_41" data-name="Ellipse 41" cx="47.146" cy="47.146" r="47.146" transform="translate(7.583 8.2)" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="3"></circle>
+        <path id="Pfad_213" data-name="Pfad 213" d="M67.282,54.71A12.735,12.735,0,1,1,54.547,41.975,12.735,12.735,0,0,1,67.282,54.71" fill="#ffe500"></path>
+        <path id="Pfad_214" data-name="Pfad 214" d="M67.282,54.71A12.735,12.735,0,1,1,54.547,41.975,12.735,12.735,0,0,1,67.282,54.71Z" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="0.75"></path>
+        <path id="Pfad_215" data-name="Pfad 215" d="M42.642,45.044S30.149,31.857,33.619,21.909s16.644-8.192,22.892-7.044c8,1.469,20.183,9.077,19.214,13.984-.739,3.744-6.015,4.165-10.411,6.71s-5.3,3.476-6.024,4.781a15.1,15.1,0,0,0-16.648,4.7" fill="#ffe800"></path>
+        <path id="Pfad_216" data-name="Pfad 216" d="M42.642,45.044S30.149,31.857,33.619,21.909s16.644-8.192,22.892-7.044c8,1.469,20.183,9.077,19.214,13.984-.739,3.744-6.015,4.165-10.411,6.71s-5.3,3.476-6.024,4.781A15.1,15.1,0,0,0,42.642,45.044Z" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="1"></path>
+        <path id="Pfad_217" data-name="Pfad 217" d="M69.915,50.05s17.716-4.015,24.5,4.046S92.967,72.59,88.792,77.378C83.446,83.507,70.687,90.1,66.96,86.766c-2.842-2.546-.512-7.3-.457-12.377s-.285-6.332-1.037-7.621A15.1,15.1,0,0,0,69.915,50.05" fill="#ffe800"></path>
+        <path id="Pfad_218" data-name="Pfad 218" d="M69.915,50.05s17.716-4.015,24.5,4.046S92.967,72.59,88.792,77.378C83.446,83.507,70.687,90.1,66.96,86.766c-2.842-2.546-.512-7.3-.457-12.377s-.285-6.332-1.037-7.621A15.1,15.1,0,0,0,69.915,50.05Z" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="1"></path>
+        <path id="Pfad_219" data-name="Pfad 219" d="M51.262,70.645S46.171,88.082,35.83,90.1,20.365,79.856,18.207,73.881c-2.764-7.649-2.336-22.006,2.391-23.644,3.6-1.248,6.629,3.1,11.042,5.609s5.674,2.825,7.167,2.793A15.1,15.1,0,0,0,51.262,70.645" fill="#ffe800"></path>
+        <path id="Pfad_220" data-name="Pfad 220" d="M51.262,70.645S46.171,88.082,35.83,90.1,20.365,79.856,18.207,73.881c-2.764-7.649-2.336-22.006,2.391-23.644,3.6-1.248,6.629,3.1,11.042,5.609s5.674,2.825,7.167,2.793A15.1,15.1,0,0,0,51.262,70.645Z" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="1"></path>
+        <line id="Linie_106" data-name="Linie 106" x2="58.532" transform="translate(107.801 92.24)" fill="#ffe500"></line>
+        <line id="Linie_107" data-name="Linie 107" x2="58.532" transform="translate(107.801 92.24)" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="9"></line>
+        <line id="Linie_108" data-name="Linie 108" x2="58.532" transform="translate(107.665 73.508)" fill="#ffe500"></line>
+        <line id="Linie_109" data-name="Linie 109" x2="58.532" transform="translate(107.665 73.508)" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="9"></line>
+        <line id="Linie_110" data-name="Linie 110" x2="58.532" transform="translate(108.292 55.036)" fill="#ffe500"></line>
+        <line id="Linie_111" data-name="Linie 111" x2="58.532" transform="translate(108.292 55.036)" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="9"></line>
+        <line id="Linie_112" data-name="Linie 112" x2="58.532" transform="translate(108.292 36.564)" fill="#ffe500"></line>
+        <line id="Linie_113" data-name="Linie 113" x2="58.532" transform="translate(108.292 36.564)" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="9"></line>
+        <line id="Linie_114" data-name="Linie 114" x2="58.532" transform="translate(108.292 18.091)" fill="#ffe500"></line>
+        <line id="Linie_115" data-name="Linie 115" x2="58.532" transform="translate(108.292 18.091)" fill="none" stroke="#91a490" stroke-miterlimit="10" stroke-width="9"></line>
+      </g>
+    </g>
+    <rect id="Bild_51" data-name="Bild 51" width="340" height="400" transform="translate(142 3650)" fill="#9fb2a1"></rect>
+    <g id="Rechteck_378" data-name="Rechteck 378" transform="translate(171 3679)" fill="none" stroke="red" stroke-width="1">
+      <rect width="282" height="349" stroke="none"></rect>
+      <rect x="0.5" y="0.5" width="281" height="348" fill="none"></rect>
+    </g>
+    <g id="Gruppe_961" data-name="Gruppe 961" transform="translate(-731.897 3597.16)">
+      <rect id="Rechteck_396" data-name="Rechteck 396" width="172.43" height="110.285" rx="9.835" transform="translate(957.683 201.198)" fill="#ffe504"></rect>
+      <path id="Pfad_388" data-name="Pfad 388" d="M47.146,0A47.146,47.146,0,1,1,0,47.146,47.146,47.146,0,0,1,47.146,0Z" transform="translate(965.266 209.398)" fill="#9fb2a1" stroke="#9fb2a1" stroke-width="3"></path>
+      <circle id="Ellipse_46" data-name="Ellipse 46" cx="12.735" cy="12.735" r="12.735" transform="translate(999.494 243.172)" fill="#ffe500" stroke="#91a490" stroke-miterlimit="10" stroke-width="0.75"></circle>
+      <path id="Pfad_385" data-name="Pfad 385" d="M1000.325,246.242s-12.493-13.187-9.023-23.135,16.643-8.192,22.892-7.045c8,1.47,20.183,9.077,19.214,13.985-.739,3.743-6.015,4.164-10.411,6.709s-5.3,3.477-6.025,4.781A15.1,15.1,0,0,0,1000.325,246.242Z" fill="#ffe504" stroke="#91a490" stroke-miterlimit="10" stroke-width="1"></path>
+      <path id="Pfad_386" data-name="Pfad 386" d="M1027.6,251.247s17.716-4.014,24.5,4.047-1.449,18.493-5.624,23.281c-5.345,6.13-18.1,12.726-21.832,9.388-2.842-2.546-.511-7.3-.457-12.377s-.285-6.332-1.037-7.621A15.1,15.1,0,0,0,1027.6,251.247Z" fill="#ffe504" stroke="#91a490" stroke-miterlimit="10" stroke-width="1"></path>
+      <path id="Pfad_387" data-name="Pfad 387" d="M1008.945,271.843s-5.091,17.437-15.432,19.455-15.465-10.244-17.624-16.219c-2.764-7.649-2.336-22.006,2.392-23.644,3.6-1.249,6.628,3.1,11.042,5.609s5.674,2.825,7.166,2.793A15.1,15.1,0,0,0,1008.945,271.843Z" fill="#ffe504" stroke="#91a490" stroke-miterlimit="10" stroke-width="1"></path>
+      <line id="Linie_229" data-name="Linie 229" x2="49.23" transform="translate(1071.601 293.437)" fill="#ffe500" stroke="#9fb2a1" stroke-miterlimit="10" stroke-width="8.254"></line>
+      <line id="Linie_230" data-name="Linie 230" x2="49.23" transform="translate(1071.601 274.706)" fill="#ffe500" stroke="#9fb2a1" stroke-miterlimit="10" stroke-width="8.254"></line>
+      <line id="Linie_231" data-name="Linie 231" x2="49.522" transform="translate(1071.974 256.234)" fill="#ffe500" stroke="#9fb2a1" stroke-miterlimit="10" stroke-width="8.278"></line>
+      <line id="Linie_232" data-name="Linie 232" x2="48.857" transform="translate(1071.974 237.761)" fill="#ffe500" stroke="#9fb2a1" stroke-miterlimit="10" stroke-width="8.223"></line>
+      <line id="Linie_233" data-name="Linie 233" x2="49.522" transform="translate(1071.974 219.289)" fill="#ffe500" stroke="#9fb2a1" stroke-miterlimit="10" stroke-width="7.46"></line>
+    </g>
+  </g>
+</svg>

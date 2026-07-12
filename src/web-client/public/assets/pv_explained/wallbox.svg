@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="340" height="400" viewBox="0 0 340 400">
+  <defs>
+    <clipPath id="clip-path">
+      <rect id="Rechteck_348" data-name="Rechteck 348" width="151.943" height="184.328" fill="none"></rect>
+    </clipPath>
+  </defs>
+  <g id="Gruppe_858" data-name="Gruppe 858" transform="translate(-142 -3650)">
+    <rect id="Bild_17" data-name="Bild 17" width="340" height="400" transform="translate(142 3650)" fill="#f8f8f8"></rect>
+    <g id="Rechteck_347" data-name="Rechteck 347" transform="translate(168 3676)" fill="none" stroke="red" stroke-width="1">
+      <rect width="282" height="349" stroke="none"></rect>
+      <rect x="0.5" y="0.5" width="281" height="348" fill="none"></rect>
+    </g>
+    <rect id="Bild_42" data-name="Bild 42" width="340" height="400" transform="translate(142 3650)" fill="#9fb2a1"></rect>
+    <g id="Rechteck_347-2" data-name="Rechteck 347" transform="translate(168 3676)" fill="none" stroke="red" stroke-width="1">
+      <rect width="282" height="349" stroke="none"></rect>
+      <rect x="0.5" y="0.5" width="281" height="348" fill="none"></rect>
+    </g>
+    <g id="Gruppe_901" data-name="Gruppe 901" transform="translate(236.028 3757.836)">
+      <g id="Gruppe_900" data-name="Gruppe 900" clip-path="url(#clip-path)">
+        <path id="Pfad_325" data-name="Pfad 325" d="M102.337,150.1H14.167A10.167,10.167,0,0,1,4,139.93V14.167A10.167,10.167,0,0,1,14.167,4h88.17A10.166,10.166,0,0,1,112.5,14.167V139.93A10.166,10.166,0,0,1,102.337,150.1" fill="#ffe500"></path>
+        <path id="Pfad_326" data-name="Pfad 326" d="M102.337,150.1H14.167A10.167,10.167,0,0,1,4,139.93V14.167A10.167,10.167,0,0,1,14.167,4h88.17A10.166,10.166,0,0,1,112.5,14.167V139.93A10.166,10.166,0,0,1,102.337,150.1Z" fill="none" stroke="#ffe500" stroke-miterlimit="10" stroke-width="8"></path>
+        <path id="Pfad_327" data-name="Pfad 327" d="M62.591,59.231,44.021,88.6H56.4v17.757l19.108-29.6H62.591Z" fill="#9fb2a1"></path>
+        <path id="Pfad_328" data-name="Pfad 328" d="M76.312,44.092H40.722a3.009,3.009,0,0,1-3.009-3.008V23.571a3.009,3.009,0,0,1,3.009-3.009h35.59a3.008,3.008,0,0,1,3.008,3.009V41.084a3.008,3.008,0,0,1-3.008,3.008" fill="#9fb2a1"></path>
+        <path id="Pfad_329" data-name="Pfad 329" d="M57.93,150.1s6.6,28.574,25.825,29.722,40.746,0,40.746,0,16.931-1.434,17.791-18.077.287-48.547.287-48.547" fill="none" stroke="#ffe500" stroke-miterlimit="10" stroke-width="8"></path>
+        <path id="Pfad_330" data-name="Pfad 330" d="M113.732,87.655a1.679,1.679,0,0,0,1.463,1.655c2.643.338,8.167,1.2,10.315,2.7,2.783,1.948,7.184,5.245,7.71,22.192a1.682,1.682,0,0,0,1.682,1.624h11.305a1.684,1.684,0,0,0,1.685-1.684V85.482c0-.043,0-.081,0-.125.071-.867.8-11.858-7.465-15.44-8.235-3.569-12.531-13.177-25.2-13.753a1.692,1.692,0,0,0-1.761,1.7Z" fill="#ffe500"></path>
+        <path id="Pfad_331" data-name="Pfad 331" d="M113.732,87.655a1.679,1.679,0,0,0,1.463,1.655c2.643.338,8.167,1.2,10.315,2.7,2.783,1.948,7.184,5.245,7.71,22.192a1.682,1.682,0,0,0,1.682,1.624h11.305a1.684,1.684,0,0,0,1.685-1.684V85.482c0-.043,0-.081,0-.125.071-.867.8-11.858-7.465-15.44-8.235-3.569-12.531-13.177-25.2-13.753a1.692,1.692,0,0,0-1.761,1.7Z" fill="none" stroke="#ffe500" stroke-miterlimit="10" stroke-width="8"></path>
+      </g>
+    </g>
+  </g>
+</svg>
