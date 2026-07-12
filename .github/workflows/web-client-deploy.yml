@@ -64,6 +64,49 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+
+      - name: Log in to Azure (CLI)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Resolve Cosmos DB connection string
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "${{ secrets.AZURE_COSMOS_CONNECTION_STRING }}" ]; then
+            echo "AZURE_COSMOS_CONNECTION_STRING=${{ secrets.AZURE_COSMOS_CONNECTION_STRING }}" >> "$GITHUB_ENV"
+          else
+            COSMOS_ACCOUNT_NAME="$(az resource list --resource-type Microsoft.DocumentDB/databaseAccounts --query "[0].name" -o tsv)"
+            COSMOS_RESOURCE_GROUP="$(az resource list --resource-type Microsoft.DocumentDB/databaseAccounts --query "[0].resourceGroup" -o tsv)"
+
+            if [ -z "$COSMOS_ACCOUNT_NAME" ] || [ -z "$COSMOS_RESOURCE_GROUP" ]; then
+              echo "Unable to find the Cosmos DB account in the selected Azure subscription." >&2
+              exit 1
+            fi
+
+            COSMOS_CONNECTION_STRING="$(az cosmosdb keys list --resource-group "$COSMOS_RESOURCE_GROUP" --name "$COSMOS_ACCOUNT_NAME" --type connection-strings --query "connectionStrings[0].connectionString" -o tsv)"
+
+            if [ -z "$COSMOS_CONNECTION_STRING" ]; then
+              echo "Unable to resolve the Cosmos DB connection string from Azure." >&2
+              exit 1
+            fi
+
+            echo "AZURE_COSMOS_CONNECTION_STRING=$COSMOS_CONNECTION_STRING" >> "$GITHUB_ENV"
+          fi
+
+          if [ -n "${{ vars.AZURE_COSMOS_DATABASE_NAME }}" ]; then
+            echo "AZURE_COSMOS_DATABASE_NAME=${{ vars.AZURE_COSMOS_DATABASE_NAME }}" >> "$GITHUB_ENV"
+          else
+            echo "AZURE_COSMOS_DATABASE_NAME=LeBeAdmin" >> "$GITHUB_ENV"
+          fi
+
       # --- Build & run src/web-client-api locally, just for the duration of the WebClient
       # build, so `next build` can fetch real SEO-relevant data at build time. There is no
       # persistent Azure deployment of this service yet (see src/web-client-api/README.md).
@@ -81,8 +124,8 @@ jobs:
         env:
           PORT: "4100"
           NODE_ENV: production
-          AZURE_COSMOS_CONNECTION_STRING: ${{ secrets.AZURE_COSMOS_CONNECTION_STRING }}
-          AZURE_COSMOS_DATABASE_NAME: ${{ vars.AZURE_COSMOS_DATABASE_NAME }}
+          AZURE_COSMOS_CONNECTION_STRING: ${{ env.AZURE_COSMOS_CONNECTION_STRING }}
+          AZURE_COSMOS_DATABASE_NAME: ${{ env.AZURE_COSMOS_DATABASE_NAME }}
 
       - name: Wait for web-client-api to become healthy
         run: |
