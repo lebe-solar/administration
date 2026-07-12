@@ -187,7 +187,14 @@ jobs:
       # environment/resources by name, exactly like azure-dev.yml does. It will not recreate or
       # change anything that already matches infra/main.bicep.
       - name: Resolve environment (provision is idempotent)
-        run: azd provision --no-prompt
+        shell: bash
+        run: |
+          set -euo pipefail
+          export AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID:-$(az account show --query id -o tsv)}"
+          export AZURE_ENV_NAME="${AZURE_ENV_NAME:-${{ vars.AZURE_ENV_NAME }}}"
+          export AZURE_LOCATION="${AZURE_LOCATION:-${{ vars.AZURE_LOCATION }}}"
+          echo "AZURE_SUBSCRIPTION_ID=$AZURE_SUBSCRIPTION_ID" >> "$GITHUB_ENV"
+          azd provision --no-prompt
         env:
           AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
@@ -195,7 +202,13 @@ jobs:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
 
       - name: Deploy webclient only
-        run: azd deploy webclient --no-prompt
+        shell: bash
+        run: |
+          set -euo pipefail
+          export AZURE_SUBSCRIPTION_ID="${AZURE_SUBSCRIPTION_ID:-$(az account show --query id -o tsv)}"
+          export AZURE_ENV_NAME="${AZURE_ENV_NAME:-${{ vars.AZURE_ENV_NAME }}}"
+          export AZURE_LOCATION="${AZURE_LOCATION:-${{ vars.AZURE_LOCATION }}}"
+          azd deploy webclient --no-prompt
         env:
           AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
