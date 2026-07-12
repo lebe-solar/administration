@@ -1,0 +1,159 @@
+name: Publish public WebClient
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Why this rebuild was triggered (e.g. manual-publish, product-published)"
+        required: false
+        default: "manual-publish"
+      deploymentId:
+        description: "publicWebClientDeployment id this run corresponds to (for correlation with the Admin's Veröffentlichung page)"
+        required: false
+        default: ""
+      triggeredBy:
+        description: "Admin user who triggered this rebuild"
+        required: false
+        default: ""
+      changesCount:
+        description: "Number of pending public content changes included in this publish"
+        required: false
+        default: "0"
+      entityTypes:
+        description: "Comma-separated entity types affected (product,manufacturer,offer,projectInsight,...)"
+        required: false
+        default: ""
+  push:
+    branches:
+      - main
+    paths:
+      - "src/web-client/**"
+      - "src/web-client-api/**"
+      - ".github/workflows/web-client-deploy.yml"
+
+# This workflow rebuilds and redeploys ONLY the public WebClient (src/web-client), fetching
+# fresh SEO-relevant data at build time from the separate, read-only src/web-client-api — never
+# from the Admin API. It never touches the Admin Frontend (src/web) or Admin API (src/api)
+# services; the full-stack azure-dev.yml workflow owns those and infra provisioning.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish-web-client:
+    runs-on: ubuntu-latest
+    env:
+      AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log publish context
+        run: |
+          echo "reason: ${{ inputs.reason }}"
+          echo "deploymentId: ${{ inputs.deploymentId }}"
+          echo "triggeredBy: ${{ inputs.triggeredBy }}"
+          echo "changesCount: ${{ inputs.changesCount }}"
+          echo "entityTypes: ${{ inputs.entityTypes }}"
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # --- Build & run src/web-client-api locally, just for the duration of the WebClient
+      # build, so `next build` can fetch real SEO-relevant data at build time. There is no
+      # persistent Azure deployment of this service yet (see src/web-client-api/README.md).
+      - name: Install web-client-api dependencies
+        working-directory: src/web-client-api
+        run: npm ci
+
+      - name: Build web-client-api
+        working-directory: src/web-client-api
+        run: npm run build
+
+      - name: Start web-client-api
+        working-directory: src/web-client-api
+        run: nohup node dist/server.js > web-client-api.log 2>&1 &
+        env:
+          PORT: "4100"
+          NODE_ENV: production
+          AZURE_COSMOS_CONNECTION_STRING: ${{ secrets.AZURE_COSMOS_CONNECTION_STRING }}
+          AZURE_COSMOS_DATABASE_NAME: ${{ vars.AZURE_COSMOS_DATABASE_NAME }}
+
+      - name: Wait for web-client-api to become healthy
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:4100/health > /dev/null; then
+              echo "web-client-api is up."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "web-client-api did not become healthy in time." >&2
+          cat src/web-client-api/web-client-api.log || true
+          exit 1
+
+      # --- Build the public WebClient's static export against that local API ---
+      - name: Install web-client dependencies
+        working-directory: src/web-client
+        run: npm ci
+
+      - name: Build web-client (static export)
+        working-directory: src/web-client
+        run: npm run build
+        env:
+          WEB_CLIENT_API_BASE_URL: http://localhost:4100/api
+
+      - name: Stop web-client-api
+        if: always()
+        run: pkill -f "dist/server.js" || true
+
+      # --- Deploy only the webclient static site ---
+      - name: Install azd
+        uses: Azure/setup-azd@v2
+
+      - name: Log in with Azure (Federated Credentials)
+        if: ${{ env.AZURE_CLIENT_ID != '' }}
+        run: |
+          azd auth login `
+            --client-id "$Env:AZURE_CLIENT_ID" `
+            --federated-credential-provider "github" `
+            --tenant-id "$Env:AZURE_TENANT_ID"
+        shell: pwsh
+
+      - name: Log in with Azure (Client Credentials)
+        if: ${{ env.AZURE_CREDENTIALS != '' }}
+        run: |
+          $info = $Env:AZURE_CREDENTIALS | ConvertFrom-Json -AsHashtable;
+          Write-Host "::add-mask::$($info.clientSecret)"
+
+          azd auth login `
+            --client-id "$($info.clientId)" `
+            --client-secret "$($info.clientSecret)" `
+            --tenant-id "$($info.tenantId)"
+        shell: pwsh
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # `azd provision` is idempotent (declarative Bicep) — this run has no local `.azure` state
+      # (fresh checkout), so re-running provision is how azd resolves the already-existing
+      # environment/resources by name, exactly like azure-dev.yml does. It will not recreate or
+      # change anything that already matches infra/main.bicep.
+      - name: Resolve environment (provision is idempotent)
+        run: azd provision --no-prompt
+        env:
+          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
+
+      - name: Deploy webclient only
+        run: azd deploy webclient --no-prompt
+        env:
+          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
