@@ -239,6 +239,10 @@ jobs:
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID || secrets.AZURE_SUBSCRIPTION_ID }}
           AZURE_PRINCIPAL_TYPE: ${{ vars.AZURE_PRINCIPAL_TYPE || secrets.AZURE_PRINCIPAL_TYPE || 'ServicePrincipal' }}
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
+          # Must be passed on every `azd provision` (including this idempotent re-resolve), or
+          # the api Function App's GITHUB_TOKEN_FOR_WEBCLIENT_REBUILD setting would be reset to
+          # empty on the next provision after azure-dev.yml sets it.
+          WEBCLIENT_REBUILD_TOKEN: ${{ secrets.WEBCLIENT_REBUILD_TOKEN }}
 
       - name: Deploy webclient only
         shell: bash

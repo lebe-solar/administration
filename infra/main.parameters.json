@@ -13,6 +13,9 @@
     },
     "principalType": {
       "value": "${AZURE_PRINCIPAL_TYPE}"
+    },
+    "githubTokenForWebClientRebuild": {
+      "value": "${WEBCLIENT_REBUILD_TOKEN}"
     }
   }
 }

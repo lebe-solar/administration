@@ -33,6 +33,10 @@ param azureAdTenantId string = '0b0e365f-09be-4291-8f1f-082f5929872d'
 @description('Entra ID (Azure AD) app registration (client) id used to sign in to the admin app')
 param azureAdClientId string = '720a1304-b7eb-4161-9025-e5689331de4a'
 
+@description('Fine-grained GitHub token (or GitHub App installation token) used by the Admin API to dispatch the web-client-deploy workflow. Never given a default — must come from the azd/CI environment.')
+@secure()
+param githubTokenForWebClientRebuild string = ''
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
@@ -96,6 +100,7 @@ module api './app/api-appservice-avm.bicep' = {
       AZURE_STORAGE_BLOB_ENDPOINT: storage.outputs.primaryBlobEndpoint
       AZURE_AD_TENANT_ID: azureAdTenantId
       AZURE_AD_CLIENT_ID: azureAdClientId
+      GITHUB_TOKEN_FOR_WEBCLIENT_REBUILD: githubTokenForWebClientRebuild
       FUNCTIONS_EXTENSION_VERSION: '~4'
       FUNCTIONS_WORKER_RUNTIME: 'node'
       SCM_DO_BUILD_DURING_DEPLOYMENT: true

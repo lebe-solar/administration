@@ -107,7 +107,11 @@ jobs:
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID || secrets.AZURE_SUBSCRIPTION_ID }}
           AZURE_PRINCIPAL_TYPE: ${{ vars.AZURE_PRINCIPAL_TYPE || secrets.AZURE_PRINCIPAL_TYPE || 'ServicePrincipal' }}
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
-          
+          # Provisioned onto the api Function App as GITHUB_TOKEN_FOR_WEBCLIENT_REBUILD (see
+          # infra/main.bicep). Named without a GITHUB_ prefix here because GitHub rejects
+          # repository secrets starting with that prefix.
+          WEBCLIENT_REBUILD_TOKEN: ${{ secrets.WEBCLIENT_REBUILD_TOKEN }}
+
       - name: Deploy Application
         shell: bash
         run: |
