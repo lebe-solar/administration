@@ -112,6 +112,97 @@ jobs:
           # repository secrets starting with that prefix.
           WEBCLIENT_REBUILD_TOKEN: ${{ secrets.WEBCLIENT_REBUILD_TOKEN }}
 
+      # --- Build & run src/web-client-api locally so `azd deploy webclient` below (which runs
+      # its own npm build internally, same as web-client-deploy.yml) can fetch real
+      # SEO-relevant data at build time instead of falling back to its no-data error state.
+      # There is no persistent Azure deployment of this service yet — see
+      # src/web-client-api/README.md.
+      - name: Log in to Azure (CLI)
+        shell: bash
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+        run: |
+          set -euo pipefail
+          CLIENT_ID="$(python3 - <<'PY'
+          import json, os
+          print(json.loads(os.environ["AZURE_CREDENTIALS"])["clientId"])
+          PY
+          )"
+          CLIENT_SECRET="$(python3 - <<'PY'
+          import json, os
+          print(json.loads(os.environ["AZURE_CREDENTIALS"])["clientSecret"])
+          PY
+          )"
+          TENANT_ID="$(python3 - <<'PY'
+          import json, os
+          print(json.loads(os.environ["AZURE_CREDENTIALS"])["tenantId"])
+          PY
+          )"
+          az login --service-principal --username "$CLIENT_ID" --password "$CLIENT_SECRET" --tenant "$TENANT_ID"
+          az account set --subscription "${{ vars.AZURE_SUBSCRIPTION_ID || secrets.AZURE_SUBSCRIPTION_ID }}"
+
+      - name: Resolve Cosmos DB connection string
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ -n "${{ secrets.AZURE_COSMOS_CONNECTION_STRING }}" ]; then
+            echo "AZURE_COSMOS_CONNECTION_STRING=${{ secrets.AZURE_COSMOS_CONNECTION_STRING }}" >> "$GITHUB_ENV"
+          else
+            COSMOS_ACCOUNT_NAME="$(az resource list --resource-type Microsoft.DocumentDB/databaseAccounts --query "[0].name" -o tsv)"
+            COSMOS_RESOURCE_GROUP="$(az resource list --resource-type Microsoft.DocumentDB/databaseAccounts --query "[0].resourceGroup" -o tsv)"
+
+            if [ -z "$COSMOS_ACCOUNT_NAME" ] || [ -z "$COSMOS_RESOURCE_GROUP" ]; then
+              echo "Unable to find the Cosmos DB account in the selected Azure subscription." >&2
+              exit 1
+            fi
+
+            COSMOS_CONNECTION_STRING="$(az cosmosdb keys list --resource-group "$COSMOS_RESOURCE_GROUP" --name "$COSMOS_ACCOUNT_NAME" --type connection-strings --query "connectionStrings[0].connectionString" -o tsv)"
+
+            if [ -z "$COSMOS_CONNECTION_STRING" ]; then
+              echo "Unable to resolve the Cosmos DB connection string from Azure." >&2
+              exit 1
+            fi
+
+            echo "AZURE_COSMOS_CONNECTION_STRING=$COSMOS_CONNECTION_STRING" >> "$GITHUB_ENV"
+          fi
+
+          if [ -n "${{ vars.AZURE_COSMOS_DATABASE_NAME || secrets.AZURE_COSMOS_DATABASE_NAME }}" ]; then
+            echo "AZURE_COSMOS_DATABASE_NAME=${{ vars.AZURE_COSMOS_DATABASE_NAME || secrets.AZURE_COSMOS_DATABASE_NAME }}" >> "$GITHUB_ENV"
+          else
+            echo "AZURE_COSMOS_DATABASE_NAME=LeBeAdmin" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install web-client-api dependencies
+        working-directory: src/web-client-api
+        run: npm ci
+
+      - name: Build web-client-api
+        working-directory: src/web-client-api
+        run: npm run build
+
+      - name: Start web-client-api
+        working-directory: src/web-client-api
+        run: nohup node dist/server.js > web-client-api.log 2>&1 &
+        env:
+          PORT: "4100"
+          NODE_ENV: production
+          AZURE_COSMOS_CONNECTION_STRING: ${{ env.AZURE_COSMOS_CONNECTION_STRING }}
+          AZURE_COSMOS_DATABASE_NAME: ${{ env.AZURE_COSMOS_DATABASE_NAME }}
+
+      - name: Wait for web-client-api to become healthy
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:4100/health > /dev/null; then
+              echo "web-client-api is up."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "web-client-api did not become healthy in time." >&2
+          cat src/web-client-api/web-client-api.log || true
+          exit 1
+
       - name: Deploy Application
         shell: bash
         run: |
@@ -137,3 +228,16 @@ jobs:
           AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # web-client-api's own server-side log (e.g. a 500's stack trace from its error
+      # middleware) never otherwise surfaces — the build only sees and logs the HTTP status,
+      # not why the API returned it. Always print it so a swallowed products-page fetch
+      # failure (silently rendered as the Produkte page's error state, without failing this
+      # job) is still diagnosable from the workflow run.
+      - name: Print web-client-api log
+        if: always()
+        run: cat src/web-client-api/web-client-api.log || true
+
+      - name: Stop web-client-api
+        if: always()
+        run: pkill -f "dist/server.js" || true
