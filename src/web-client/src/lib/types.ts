@@ -36,6 +36,52 @@ export interface Product {
   status: 'Active' | 'Draft' | 'Hidden';
 }
 
+// ---- GET /api/products-page response shape (src/web-client-api) ----
+// Fetched at build time by src/lib/productsPageData.ts — see that file for why /produkte is a
+// Server Component instead of reading from mockData directly.
+
+export interface ProductsPageProduct {
+  id: string;
+  name: string;
+  category: Category;
+  manufacturer: string;
+  power: number | null;
+  unit: string;
+  warranty: string;
+  logo: string | null;
+  image: string | null;
+  beschreibung: string;
+  specPdf: string | null;
+  panelHeightMeters: number | null;
+  panelWidthMeters: number | null;
+  updatedAt: string;
+}
+
+export interface ProductsPageManufacturer {
+  id: string;
+  name: string;
+  logo: string | null;
+  description: string;
+  link: string;
+  linkedProducts: number;
+}
+
+export interface ProductsPageGroup {
+  category: Category;
+  label: string;
+  products: ProductsPageProduct[];
+}
+
+export interface ProductsPageData {
+  schemaVersion: string;
+  generatedAt: string;
+  products: ProductsPageProduct[];
+  manufacturers: ProductsPageManufacturer[];
+  groupedProducts: ProductsPageGroup[];
+  /** Local-only flag (not part of the API response) set when the build-time fetch failed. */
+  fetchError?: boolean;
+}
+
 export type MainProductSlot = 'solarModule' | 'inverter' | 'storage' | 'wallbox' | 'heatingSystem';
 export type OfferMainProducts = Partial<Record<MainProductSlot, { productId: string; quantity: number }>>;
 
