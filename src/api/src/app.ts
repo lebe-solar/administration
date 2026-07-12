@@ -17,6 +17,7 @@ import contactRequestsPublic from "./routes/contactRequestsPublic";
 import contactRequests from "./routes/contactRequests";
 import employees from "./routes/employees";
 import createUploadsRouter from "./routes/uploads";
+import createPublicationRouter from "./routes/publication";
 import { configureMongoose } from "./models/mongoose";
 import { seedIfEmpty } from "./seed";
 import { logger } from "./config/observability";
@@ -87,6 +88,7 @@ export const createApp = async (): Promise<Express> => {
     app.use("/contact-requests", ...authMiddlewares, contactRequests);
     app.use("/employees", ...authMiddlewares, employees);
     app.use("/uploads", ...authMiddlewares, createUploadsRouter(config));
+    app.use("/admin/publication", ...authMiddlewares, createPublicationRouter(config));
 
     // Swagger UI (left unauthenticated: it only serves the API's static documentation)
     const swaggerDocument = yaml.load("./openapi.yaml");
