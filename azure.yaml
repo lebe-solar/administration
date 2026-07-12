@@ -43,9 +43,30 @@ services:
     dist: out
     language: js
     host: staticwebapp
-    # No prepackage/.env.local hook yet — this app's backend is mocked for
-    # now (no NEXT_PUBLIC_API_BASE_URL to inject). Add one here once the
-    # real API integration lands.
+    hooks:
+      # `azd deploy webclient` always runs its own `npm run build` as part of its packaging
+      # phase (it does not reuse any build done earlier in the workflow) — so
+      # WEB_CLIENT_API_BASE_URL must be present as a build-time env var right here, not just
+      # in an earlier manual build step. Next.js loads .env.local automatically for
+      # server-side process.env access, no extra dependency needed (unlike Vite).
+      # web-client-deploy.yml keeps the local web-client-api process alive (and only kills it
+      # after this deploy step) specifically so this build can reach it.
+      prepackage:
+        windows:
+          shell: pwsh
+          run: |
+            "WEB_CLIENT_API_BASE_URL=""http://localhost:4100/api""" | Out-File -FilePath .env.local -Encoding utf8
+        posix:
+          shell: sh
+          run: |
+            echo WEB_CLIENT_API_BASE_URL=\"http://localhost:4100/api\" > .env.local
+      postdeploy:
+        windows:
+          shell: pwsh
+          run: 'rm .env.local'
+        posix:
+          shell: sh
+          run: 'rm .env.local'
   api:
     project: ./src/api
     language: js

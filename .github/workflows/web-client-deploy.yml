@@ -156,31 +156,16 @@ jobs:
           cat src/web-client-api/web-client-api.log || true
           exit 1
 
-      # --- Build the public WebClient's static export against that local API ---
-      - name: Install web-client dependencies
-        working-directory: src/web-client
-        run: npm ci
-
-      - name: Build web-client (static export)
-        working-directory: src/web-client
-        run: npm run build
-        env:
-          WEB_CLIENT_API_BASE_URL: http://localhost:4100/api
-
-      # web-client-api's own server-side log (e.g. a 500's stack trace from its error
-      # middleware) never otherwise surfaces — the Next.js build only sees and logs the HTTP
-      # status, not why the API returned it. Always print it so a swallowed products-page
-      # fetch failure (silently rendered as the Produkte page's error state, without failing
-      # this job) is still diagnosable from the workflow run.
-      - name: Print web-client-api log
-        if: always()
-        run: cat src/web-client-api/web-client-api.log || true
-
-      - name: Stop web-client-api
-        if: always()
-        run: pkill -f "dist/server.js" || true
-
       # --- Deploy only the webclient static site ---
+      #
+      # Deliberately no manual "npm ci && npm run build" here for src/web-client: `azd deploy
+      # webclient` always runs its own build as part of its packaging phase (see
+      # "webclient: Packaging (Running npm package script)" in its output) and does NOT reuse
+      # any build produced earlier in this job — so a separate manual build here would be
+      # thrown away and, worse, would look like a successful real-data build in the log while
+      # the actually-deployed build (azd's internal one) silently used none of this job's env.
+      # web-client-api is instead kept alive through the deploy step below (azure.yaml's
+      # webclient.hooks.prepackage points azd's build at it), and only stopped afterwards.
       - name: Install azd
         uses: Azure/setup-azd@v2
 
@@ -272,3 +257,16 @@ jobs:
           AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # web-client-api's own server-side log (e.g. a 500's stack trace from its error
+      # middleware) never otherwise surfaces — the build only sees and logs the HTTP status,
+      # not why the API returned it. Always print it so a swallowed products-page fetch
+      # failure (silently rendered as the Produkte page's error state, without failing this
+      # job) is still diagnosable from the workflow run.
+      - name: Print web-client-api log
+        if: always()
+        run: cat src/web-client-api/web-client-api.log || true
+
+      - name: Stop web-client-api
+        if: always()
+        run: pkill -f "dist/server.js" || true
