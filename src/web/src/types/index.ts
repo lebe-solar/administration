@@ -317,3 +317,63 @@ export interface ApiErrors {
   errors?: Record<string, string>;
   error?: string;
 }
+
+// ---- Public WebClient publishing / rebuild (Veröffentlichung) ----
+
+export type PublicEntityType =
+  'product' | 'manufacturer' | 'offer' | 'projectInsight' | 'knowledge' | 'landingPage' | 'settings' | 'manual';
+export type PublicChangeType = 'created' | 'updated' | 'published' | 'hidden' | 'archived' | 'deleted' | 'manual';
+export type PublicChangeStatus = 'pending' | 'publishing' | 'published' | 'ignored';
+
+export interface PublicContentChange {
+  id: string;
+  entityType: PublicEntityType;
+  entityId: string;
+  entityTitle: string;
+  changeType: PublicChangeType;
+  reason: string;
+  changedBy?: string;
+  changedAt: string;
+  publishedAt?: string | null;
+  deploymentId?: string | null;
+  status: PublicChangeStatus;
+}
+
+export type DeploymentStatus = 'queued' | 'running' | 'success' | 'failed';
+export type DeploymentTriggerType = 'manual' | 'pendingChanges' | 'system';
+
+export interface DeploymentAffectedChange {
+  changeId: string;
+  entityType: string;
+  entityId: string;
+  entityTitle: string;
+  reason: string;
+}
+
+export interface PublicWebClientDeployment {
+  id: string;
+  status: DeploymentStatus;
+  triggerType: DeploymentTriggerType;
+  reason: string;
+  triggeredBy?: string;
+  triggeredAt: string;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  durationMs?: number | null;
+  githubWorkflowId?: string;
+  githubRunId?: string | null;
+  githubRunUrl?: string | null;
+  gitRef?: string;
+  affectedChanges: DeploymentAffectedChange[];
+  errorMessage?: string | null;
+}
+
+export type PublicationOverviewStatus = 'upToDate' | 'pending' | 'publishing' | 'failed';
+
+export interface PublicationOverview {
+  status: PublicationOverviewStatus;
+  hasPendingChanges: boolean;
+  pendingChanges: PublicContentChange[];
+  latestDeployment: PublicWebClientDeployment | null;
+  history: PublicWebClientDeployment[];
+}

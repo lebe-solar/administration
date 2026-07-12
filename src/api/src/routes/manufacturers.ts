@@ -2,8 +2,14 @@ import express, { Request } from "express";
 import mongoose from "mongoose";
 import { ManufacturerModel } from "../models/manufacturer";
 import { ProductModel } from "../models/product";
+import { changedByFromRequest, fieldsChanged, recordPublicChange } from "../services/publicContentChanges";
 
 const router = express.Router();
+
+// Public-facing fields — manufacturers only ever appear on the public WebClient through
+// products that reference them, so a name/logo/description/link change is always what
+// matters (there's no separate "manufacturer status" to gate on).
+const PUBLIC_MANUFACTURER_FIELDS = ["name", "logo", "description", "link"];
 
 async function withLinkedCount(doc: any) {
     const linkedProducts = await ProductModel.countDocuments({ manufacturer_id: String(doc.id) });
@@ -79,13 +85,23 @@ router.put("/:id", async (req: Request<{ id: string }>, res) => {
         return res.status(422).json({ errors });
     }
 
+    const before = existing.toJSON() as Record<string, unknown>;
+
     existing.name = req.body.name.trim();
     existing.description = req.body.description || "";
     existing.logo = req.body.logo ?? existing.logo;
     existing.link = req.body.link || "";
     await existing.save();
 
-    res.json(await withLinkedCount(existing.toJSON()));
+    const after = existing.toJSON() as Record<string, unknown>;
+    if (fieldsChanged(before, after, PUBLIC_MANUFACTURER_FIELDS)) {
+        await recordPublicChange({
+            entityType: "manufacturer", entityId: String(existing.id), entityTitle: existing.name,
+            changeType: "updated", reason: "manufacturer-updated", changedBy: changedByFromRequest(req),
+        });
+    }
+
+    res.json(await withLinkedCount(after));
 });
 
 router.delete("/:id", async (req: Request<{ id: string }>, res) => {

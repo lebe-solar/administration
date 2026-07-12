@@ -11,5 +11,12 @@
     "auth": {
         "tenantId": "",
         "clientId": ""
+    },
+    "github": {
+        "owner": "lebe-solar",
+        "repo": "administration",
+        "workflowId": "web-client-deploy.yml",
+        "ref": "main",
+        "token": ""
     }
 }

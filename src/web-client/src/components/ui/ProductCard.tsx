@@ -2,7 +2,7 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 
 interface ProductCardProps extends Omit<HTMLAttributes<HTMLDivElement>, 'translate'> {
-  image: string;
+  image?: string;
   imageAlt?: string;
   name: ReactNode;
   header?: ReactNode;
@@ -45,7 +45,7 @@ export function ProductCard({
       {...rest}
     >
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200, padding: '20px 20px 0' }}>
-        <img src={image} alt={imageAlt || String(name)} style={{ maxHeight: 180, maxWidth: '100%', objectFit: 'contain' }} />
+        {image && <img src={image} alt={imageAlt || String(name)} style={{ maxHeight: 180, maxWidth: '100%', objectFit: 'contain' }} />}
       </div>
       <div style={{ padding: '18px 22px 24px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
         <h3 style={{ margin: 0, fontWeight: 'var(--fw-semi)' as unknown as number, fontSize: 'var(--text-p2)', color: 'var(--charcoal)' }}>{name}</h3>
