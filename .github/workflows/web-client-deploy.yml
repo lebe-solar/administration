@@ -167,6 +167,15 @@ jobs:
         env:
           WEB_CLIENT_API_BASE_URL: http://localhost:4100/api
 
+      # web-client-api's own server-side log (e.g. a 500's stack trace from its error
+      # middleware) never otherwise surfaces — the Next.js build only sees and logs the HTTP
+      # status, not why the API returned it. Always print it so a swallowed products-page
+      # fetch failure (silently rendered as the Produkte page's error state, without failing
+      # this job) is still diagnosable from the workflow run.
+      - name: Print web-client-api log
+        if: always()
+        run: cat src/web-client-api/web-client-api.log || true
+
       - name: Stop web-client-api
         if: always()
         run: pkill -f "dist/server.js" || true

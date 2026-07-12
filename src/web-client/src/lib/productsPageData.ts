@@ -86,7 +86,8 @@ export async function getProductsPageData(): Promise<ProductsPageData> {
     // there is no need for (and `output: 'export'` cannot support) runtime revalidation here.
     const res = await fetch(`${baseUrl}/products-page`);
     if (!res.ok) {
-      throw new Error(`products-page request failed with status ${res.status}`);
+      const body = await res.text().catch(() => '');
+      throw new Error(`products-page request failed with status ${res.status}: ${body}`);
     }
     return (await res.json()) as ProductsPageData;
   } catch (err) {
