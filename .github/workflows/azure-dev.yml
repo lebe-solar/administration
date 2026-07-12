@@ -34,7 +34,7 @@ jobs:
       - name: Install Nodejs
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
       
       - name: Install Azure Function Core Tools
         run: |
@@ -122,7 +122,13 @@ jobs:
             AZURE_LOCATION="westeurope"
           fi
           echo "AZURE_LOCATION=$AZURE_LOCATION" >> "$GITHUB_ENV"
-          azd deploy --no-prompt
+          # Deployed one service at a time — `azd deploy --no-prompt` (no service arg) builds
+          # all services concurrently, and running api's tsc build, web's vite build, and
+          # webclient's next build at once exceeds the runner's memory (api's build was being
+          # killed with SIGKILL).
+          azd deploy api --no-prompt
+          azd deploy web --no-prompt
+          azd deploy webclient --no-prompt
         env:
           AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
