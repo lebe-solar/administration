@@ -23,9 +23,11 @@ export default function ServicesPage() {
 
   function load() {
     setLoading(true);
-    servicesApi.list().then(setServices).finally(() => setLoading(false));
+    servicesApi.list().then(setServices)
+      .catch(e => pushToast('error', e instanceof ApiError ? e.message : 'Inklusivleistungen konnten nicht geladen werden.'))
+      .finally(() => setLoading(false));
   }
-  useEffect(load, []);
+  useEffect(load, [pushToast]);
 
   async function handleSave(rec: Partial<Service>, editing: boolean) {
     if (editing && formState?.data) await servicesApi.update(formState.data.id, rec);
@@ -35,9 +37,13 @@ export default function ServicesPage() {
     load();
   }
   async function duplicate(s: Service) {
-    await servicesApi.duplicate(s.id);
-    pushToast('success', 'Leistungsposition dupliziert');
-    load();
+    try {
+      await servicesApi.duplicate(s.id);
+      pushToast('success', 'Leistungsposition dupliziert');
+      load();
+    } catch (e) {
+      pushToast('error', e instanceof ApiError ? e.message : 'Duplizieren fehlgeschlagen');
+    }
   }
   async function confirmDelete() {
     if (!deleteTarget) return;

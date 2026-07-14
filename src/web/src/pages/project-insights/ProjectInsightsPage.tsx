@@ -31,9 +31,11 @@ export default function ProjectInsightsPage() {
 
   function load() {
     setLoading(true);
-    projectInsightsApi.list().then(setRows).finally(() => setLoading(false));
+    projectInsightsApi.list().then(setRows)
+      .catch(e => pushToast('error', e instanceof ApiError ? e.message : 'Projekte konnten nicht geladen werden.'))
+      .finally(() => setLoading(false));
   }
-  useEffect(load, []);
+  useEffect(load, [pushToast]);
 
   const filtered = rows.filter(p =>
     (status === 'all' || p.status === status) &&
@@ -43,14 +45,22 @@ export default function ProjectInsightsPage() {
   );
 
   async function duplicate(p: ProjectInsight) {
-    await projectInsightsApi.duplicate(p.id);
-    pushToast('success', 'Projekt dupliziert');
-    load();
+    try {
+      await projectInsightsApi.duplicate(p.id);
+      pushToast('success', 'Projekt dupliziert');
+      load();
+    } catch (e) {
+      pushToast('error', e instanceof ApiError ? e.message : 'Duplizieren fehlgeschlagen');
+    }
   }
   async function archive(p: ProjectInsight) {
-    await projectInsightsApi.archive(p.id);
-    pushToast('success', 'Projekt archiviert');
-    load();
+    try {
+      await projectInsightsApi.archive(p.id);
+      pushToast('success', 'Projekt archiviert');
+      load();
+    } catch (e) {
+      pushToast('error', e instanceof ApiError ? e.message : 'Archivieren fehlgeschlagen');
+    }
   }
   async function confirmDelete() {
     if (!deleteTarget) return;

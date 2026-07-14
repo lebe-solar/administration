@@ -15,6 +15,7 @@ import { useWindowWidth, fmtDateShort } from '../../lib/utils';
 import { useToast } from '../../lib/ToastContext';
 import { productsApi, categoriesApi } from '../../api/products';
 import { manufacturersApi } from '../../api/manufacturers';
+import { ApiError } from '../../api/client';
 import type { Product, Manufacturer, Category } from '../../types';
 
 // Reserved pixel width of the pinned actions column (3 icon buttons + gaps + padding), used to
@@ -44,9 +45,10 @@ export default function ProductsPage() {
     setLoading(true);
     Promise.all([productsApi.list(), manufacturersApi.list(), categoriesApi.list()])
       .then(([p, m, c]) => { setProducts(p); setManufacturers(m); setCategories(c); })
+      .catch(e => pushToast('error', e instanceof ApiError ? e.message : 'Produkte konnten nicht geladen werden.'))
       .finally(() => setLoading(false));
   }
-  useEffect(load, []);
+  useEffect(load, [pushToast]);
 
   const filtered = products.filter(p =>
     (cat === 'all' || p.category === cat) &&

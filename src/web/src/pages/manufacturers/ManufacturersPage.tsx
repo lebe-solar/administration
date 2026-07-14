@@ -22,9 +22,11 @@ export default function ManufacturersPage() {
 
   function load() {
     setLoading(true);
-    manufacturersApi.list().then(setManufacturers).finally(() => setLoading(false));
+    manufacturersApi.list().then(setManufacturers)
+      .catch(e => pushToast('error', e instanceof ApiError ? e.message : 'Hersteller konnten nicht geladen werden.'))
+      .finally(() => setLoading(false));
   }
-  useEffect(load, []);
+  useEffect(load, [pushToast]);
 
   async function handleSave(rec: Partial<Manufacturer>, editing: boolean) {
     if (editing && formState?.data) await manufacturersApi.update(formState.data.id, rec);

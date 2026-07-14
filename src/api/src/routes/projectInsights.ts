@@ -15,7 +15,12 @@ const PUBLIC_PROJECT_INSIGHT_FIELDS = [
 
 router.get("/", async (req, res) => {
     const { status, buildingType, customerType, q } = req.query as Record<string, string | undefined>;
-    let rows = (await ProjectInsightModel.find().sort({ sortOrder: 1, updatedAt: -1 }).exec()).map(r => r.toJSON());
+    // A DB-level compound sort ({sortOrder, updatedAt}) is not reliably supported by Cosmos DB's
+    // API for MongoDB without a dedicated composite index — every other list endpoint in this
+    // app only ever sorts by a single field. Sort by the single supported field at the DB level
+    // and break ties with sortOrder in memory instead (this collection is small).
+    let rows = (await ProjectInsightModel.find().sort({ updatedAt: -1 }).exec()).map(r => r.toJSON());
+    rows.sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
     if (status && status !== "all") {
         rows = rows.filter((p: any) => p.status === status);

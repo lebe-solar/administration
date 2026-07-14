@@ -36,9 +36,10 @@ export default function OffersPage() {
     setLoading(true);
     Promise.all([offersApi.list(), productsApi.list()])
       .then(([o, p]) => { setOffers(o); setProducts(p); })
+      .catch(e => pushToast('error', e instanceof ApiError ? e.message : 'Angebote konnten nicht geladen werden.'))
       .finally(() => setLoading(false));
   }
-  useEffect(load, []);
+  useEffect(load, [pushToast]);
 
   const productsById = useMemo(() => Object.fromEntries(products.map(p => [p.id, p])), [products]);
 
@@ -50,9 +51,13 @@ export default function OffersPage() {
   );
 
   async function duplicate(o: Offer) {
-    await offersApi.duplicate(o.id);
-    pushToast('success', 'Angebot dupliziert');
-    load();
+    try {
+      await offersApi.duplicate(o.id);
+      pushToast('success', 'Angebot dupliziert');
+      load();
+    } catch (e) {
+      pushToast('error', e instanceof ApiError ? e.message : 'Duplizieren fehlgeschlagen');
+    }
   }
   async function confirmDelete() {
     if (!deleteTarget) return;

@@ -8,6 +8,7 @@ import { Icon } from '../../components/ui/Icon';
 import { Field, TextInput, TextArea, SelectInput } from '../../components/ui/Fields';
 import { ImageUpload } from '../../components/ui/ImageUpload';
 import { AllowBadge } from '../../components/ui/Badges';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { ProductSlotField } from './ProductSlotField';
 import { ServiceCard } from './ServiceCard';
 import { RequirementCard } from './RequirementCard';
@@ -113,39 +114,48 @@ export default function OfferBuilder() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [step, setStep] = useState(1);
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     async function init() {
-      const [prods, comps, svcs, reqs] = await Promise.all([productsApi.list(), systemComponentsApi.list(), servicesApi.list(), requirementTemplatesApi.list()]);
-      if (cancelled) return;
-      setProducts(prods);
-      setComponentTemplates(comps);
-      setServiceTemplates(svcs);
-      setRequirementTemplates(reqs);
-      if (editing && editId) {
-        const o = await offersApi.get(editId);
+      setLoadError(false);
+      try {
+        const [prods, comps, svcs, reqs] = await Promise.all([productsApi.list(), systemComponentsApi.list(), servicesApi.list(), requirementTemplatesApi.list()]);
         if (cancelled) return;
-        setF({
-          id: o.id, title: o.title, subtitle: o.subtitle, status: o.status,
-          targetCustomer: o.targetCustomer, designedFor: o.designedFor, shortDescription: o.shortDescription, longDescription: o.longDescription,
-          priceType: o.priceType, priceAmount: o.priceAmount == null ? '' : String(o.priceAmount), priceCurrency: o.priceCurrency || 'EUR',
-          priceLabel: o.priceLabel, taxNote: o.taxNote, validUntil: o.validUntil || '',
-          slug: o.slug || '', publicUrl: o.publicUrl, previewImageUrl: o.previewImageUrl || '',
-          mainProducts: o.mainProducts, systemComponents: o.systemComponents, includedServices: o.includedServices,
-          requirementsAndExclusions: o.requirementsAndExclusions, economics: o.economics, allowChanges: o.allowChanges,
-        });
-      } else {
-        const { id } = await offersApi.nextId();
+        setProducts(prods);
+        setComponentTemplates(comps);
+        setServiceTemplates(svcs);
+        setRequirementTemplates(reqs);
+        if (editing && editId) {
+          const o = await offersApi.get(editId);
+          if (cancelled) return;
+          setF({
+            id: o.id, title: o.title, subtitle: o.subtitle, status: o.status,
+            targetCustomer: o.targetCustomer, designedFor: o.designedFor, shortDescription: o.shortDescription, longDescription: o.longDescription,
+            priceType: o.priceType, priceAmount: o.priceAmount == null ? '' : String(o.priceAmount), priceCurrency: o.priceCurrency || 'EUR',
+            priceLabel: o.priceLabel, taxNote: o.taxNote, validUntil: o.validUntil || '',
+            slug: o.slug || '', publicUrl: o.publicUrl, previewImageUrl: o.previewImageUrl || '',
+            mainProducts: o.mainProducts, systemComponents: o.systemComponents, includedServices: o.includedServices,
+            requirementsAndExclusions: o.requirementsAndExclusions, economics: o.economics, allowChanges: o.allowChanges,
+          });
+        } else {
+          const { id } = await offersApi.nextId();
+          if (cancelled) return;
+          setF({ ...BLANK, id });
+        }
+        setReady(true);
+      } catch (e) {
         if (cancelled) return;
-        setF({ ...BLANK, id });
+        setLoadError(true);
+        pushToast('error', e instanceof ApiError ? e.message : 'Angebot konnte nicht geladen werden.');
       }
-      setReady(true);
     }
     init();
     return () => { cancelled = true; };
-  }, [editing, editId]);
+  }, [editing, editId, loadAttempt, pushToast]);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF(s => ({ ...s, [k]: v }));
   const setEco = <K extends keyof OfferEconomics>(k: K, v: OfferEconomics[K]) => setF(s => ({ ...s, economics: { ...s.economics, [k]: v } }));
@@ -277,6 +287,19 @@ export default function OfferBuilder() {
   async function submitAndPreview() {
     const saved = await submit(f.status);
     if (saved) navigate(`/offers/${saved.id}/preview`);
+  }
+
+  if (loadError) {
+    return (
+      <div>
+        <Topbar title={editing ? 'Angebot bearbeiten' : 'Neues Angebot erstellen'} mobile={mobile} onMenu={onMenu} />
+        <Card pad={0}>
+          <EmptyState icon="alert" title="Angebot konnte nicht geladen werden"
+            text="Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+            action={<AdminButton icon="edit" onClick={() => setLoadAttempt(n => n + 1)}>Erneut versuchen</AdminButton>} />
+        </Card>
+      </div>
+    );
   }
 
   if (!ready) {

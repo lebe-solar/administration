@@ -24,9 +24,11 @@ export default function SystemComponentsPage() {
 
   function load() {
     setLoading(true);
-    systemComponentsApi.list().then(setComponents).finally(() => setLoading(false));
+    systemComponentsApi.list().then(setComponents)
+      .catch(e => pushToast('error', e instanceof ApiError ? e.message : 'Systemkomponenten konnten nicht geladen werden.'))
+      .finally(() => setLoading(false));
   }
-  useEffect(load, []);
+  useEffect(load, [pushToast]);
 
   async function handleSave(rec: Partial<SystemComponent>, editing: boolean) {
     if (editing && formState?.data) await systemComponentsApi.update(formState.data.id, rec);
