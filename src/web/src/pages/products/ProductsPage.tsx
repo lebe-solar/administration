@@ -11,11 +11,16 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { ConfirmModal } from '../../components/ui/ConfirmModal';
 import { ViewProductModal } from './ViewProductModal';
 import { useLayout } from '../../lib/layoutContext';
-import { useWindowWidth } from '../../lib/utils';
+import { useWindowWidth, fmtDateShort } from '../../lib/utils';
 import { useToast } from '../../lib/ToastContext';
 import { productsApi, categoriesApi } from '../../api/products';
 import { manufacturersApi } from '../../api/manufacturers';
 import type { Product, Manufacturer, Category } from '../../types';
+
+// Reserved pixel width of the pinned actions column (3 icon buttons + gaps + padding), used to
+// offset the "Updated" column right beside it — both stay pinned together so neither is hidden
+// underneath the other when the table is wider than the viewport.
+const ACTIONS_COL_WIDTH = 122;
 
 export default function ProductsPage() {
   const { mobile, onMenu } = useLayout();
@@ -116,7 +121,7 @@ export default function ProductsPage() {
           <div>
             {filtered.map((p, i) => (
               <div key={p.id} style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '14px 16px', borderBottom: i < filtered.length - 1 ? '1px solid var(--gray-300)' : 'none' }}>
-                <LogoThumb src={p.Logo} name={p.Hersteller} size={40} />
+                <LogoThumb src={p.image} name={p.Header} size={40} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--charcoal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.Header}</div>
                   <div style={{ fontSize: 12, color: 'var(--gray-mid)', marginTop: 2 }}>{p.id} · {p.Hersteller} · {p.Power}{p.Unit ? ' ' + p.Unit : ''}</div>
@@ -134,9 +139,11 @@ export default function ProductsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13.5 }}>
               <thead>
                 <tr style={{ background: 'var(--cream)', textAlign: 'left', color: 'var(--gray-mid)' }}>
-                  {['ID', 'Logo', 'Product Name', 'Category', 'Manufacturer', 'Power', 'Warranty', 'Spec', 'Status', 'Updated', ''].map((h, i) => (
-                    <th key={i} style={{ padding: '12px 14px', fontWeight: 600, fontSize: 12, letterSpacing: '.02em', whiteSpace: 'nowrap' }}>{h}</th>
+                  {['ID', 'Product Picture', 'Product Name', 'Category', 'Manufacturer', 'Power', 'Spec', 'Status'].map((h, i) => (
+                    <th key={i} style={{ padding: '12px 10px', fontWeight: 600, fontSize: 12, letterSpacing: '.02em', whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
+                  <th style={{ padding: '12px 10px', fontWeight: 600, fontSize: 12, letterSpacing: '.02em', whiteSpace: 'nowrap', position: 'sticky', right: ACTIONS_COL_WIDTH, background: 'var(--cream)' }}>Updated</th>
+                  <th style={{ padding: '12px 10px', fontWeight: 600, fontSize: 12, letterSpacing: '.02em', whiteSpace: 'nowrap', position: 'sticky', right: 0, width: ACTIONS_COL_WIDTH, background: 'var(--cream)' }} />
                 </tr>
               </thead>
               <tbody>
@@ -145,9 +152,9 @@ export default function ProductsPage() {
                     <tr style={{ borderBottom: '1px solid var(--gray-300)', background: expanded === p.id ? 'var(--gray-300)' : 'transparent' }}
                       onMouseEnter={e => { if (expanded !== p.id) e.currentTarget.style.background = 'var(--gray-100)'; }}
                       onMouseLeave={e => { if (expanded !== p.id) e.currentTarget.style.background = 'transparent'; }}>
-                      <td style={{ padding: '11px 14px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--sage)', whiteSpace: 'nowrap' }}>{p.id}</td>
-                      <td style={{ padding: '11px 14px' }}><LogoThumb src={p.Logo} name={p.Hersteller} size={34} /></td>
-                      <td style={{ padding: '11px 14px', maxWidth: 260 }}>
+                      <td style={{ padding: '11px 10px', fontFamily: 'var(--font-sans)', fontWeight: 600, color: 'var(--sage)', whiteSpace: 'nowrap' }}>{p.id}</td>
+                      <td style={{ padding: '11px 10px' }}><LogoThumb src={p.image} name={p.Header} size={34} /></td>
+                      <td style={{ padding: '11px 10px', maxWidth: 260 }}>
                         <div style={{ fontWeight: 600, color: 'var(--charcoal)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.Header}</div>
                         {p.category === 'Solarmodule' && (p.panelHeightMeters || p.panelWidthMeters) && (
                           <button onClick={() => setExpanded(expanded === p.id ? null : p.id)} style={{ marginTop: 3, background: 'none', border: 'none', padding: 0, color: 'var(--gray-mid)', fontSize: 12, cursor: 'pointer', textDecoration: 'underline' }}>
@@ -155,18 +162,17 @@ export default function ProductsPage() {
                           </button>
                         )}
                       </td>
-                      <td style={{ padding: '11px 14px' }}><CategoryTag category={p.category} /></td>
-                      <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', color: 'var(--charcoal)' }}>{p.Hersteller}</td>
-                      <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', color: 'var(--charcoal)' }}>{p.Power}{p.Unit ? <span style={{ color: 'var(--gray-mid)' }}> {p.Unit}</span> : ''}</td>
-                      <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', color: 'var(--charcoal)' }}>{p.Garantie || '—'}</td>
-                      <td style={{ padding: '11px 14px' }}>
+                      <td style={{ padding: '11px 10px' }}><CategoryTag category={p.category} /></td>
+                      <td style={{ padding: '11px 10px', whiteSpace: 'nowrap', color: 'var(--charcoal)' }}>{p.Hersteller}</td>
+                      <td style={{ padding: '11px 10px', whiteSpace: 'nowrap', color: 'var(--charcoal)' }}>{p.Power}{p.Unit ? <span style={{ color: 'var(--gray-mid)' }}> {p.Unit}</span> : ''}</td>
+                      <td style={{ padding: '11px 10px' }}>
                         {p.hasSpec
                           ? <span title={p.Spezifikation ?? undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#1f8a5b', fontSize: 12.5, fontWeight: 600 }}><Icon name="file" size={14} />PDF</span>
                           : <span style={{ color: 'var(--gray-mid)', fontSize: 12.5 }}>—</span>}
                       </td>
-                      <td style={{ padding: '11px 14px' }}><StatusBadge status={p.Status} /></td>
-                      <td style={{ padding: '11px 14px', whiteSpace: 'nowrap', color: 'var(--gray-mid)', fontSize: 12.5 }}>{p.updatedAt}</td>
-                      <td style={{ padding: '11px 8px', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '11px 10px' }}><StatusBadge status={p.Status} /></td>
+                      <td style={{ padding: '11px 10px', whiteSpace: 'nowrap', color: 'var(--gray-mid)', fontSize: 12.5, position: 'sticky', right: ACTIONS_COL_WIDTH, background: expanded === p.id ? 'var(--gray-300)' : 'var(--white)' }}>{fmtDateShort(p.updatedAt)}</td>
+                      <td style={{ padding: '11px 8px', whiteSpace: 'nowrap', position: 'sticky', right: 0, width: ACTIONS_COL_WIDTH, background: expanded === p.id ? 'var(--gray-300)' : 'var(--white)', boxShadow: '-6px 0 6px -6px rgba(0,0,0,0.12)' }}>
                         <div style={{ display: 'flex', gap: 2 }}>
                           <IconAction icon="eye" label="Ansehen" onClick={() => setViewing(p)} />
                           <IconAction icon="edit" label="Bearbeiten" onClick={() => navigate(`/products/${p.id}/edit`)} />
@@ -176,7 +182,7 @@ export default function ProductsPage() {
                     </tr>
                     {expanded === p.id && (
                       <tr style={{ background: 'var(--gray-300)' }}>
-                        <td colSpan={11} style={{ padding: '10px 22px 14px' }}>
+                        <td colSpan={10} style={{ padding: '10px 22px 14px' }}>
                           <div style={{ display: 'flex', gap: 32, fontSize: 13 }}>
                             <span><strong style={{ color: 'var(--charcoal)' }}>Panel height:</strong> <span style={{ color: 'var(--gray-mid)' }}>{p.panelHeightMeters ?? '—'} m</span></span>
                             <span><strong style={{ color: 'var(--charcoal)' }}>Panel width:</strong> <span style={{ color: 'var(--gray-mid)' }}>{p.panelWidthMeters ?? '—'} m</span></span>

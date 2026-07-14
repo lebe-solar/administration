@@ -20,6 +20,13 @@ export function fmtDate(d?: string | null) {
   return p.length === 3 ? `${p[2]}.${p[1]}.${p[0]}` : d;
 }
 
+/** Same as fmtDate but with a 2-digit year (dd.MM.yy) — for dense table columns. */
+export function fmtDateShort(d?: string | null) {
+  if (!d) return '—';
+  const p = d.split('T')[0].split('-');
+  return p.length === 3 ? `${p[2]}.${p[1]}.${p[0].slice(2)}` : d;
+}
+
 export const euro = (n?: number | null) => (n || 0).toLocaleString('de-DE') + ' €';
 
 export function slugify(s?: string) {
