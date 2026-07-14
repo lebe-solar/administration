@@ -15,7 +15,6 @@ import ProjectInsightsPage from './pages/project-insights/ProjectInsightsPage';
 import ProjectInsightForm from './pages/project-insights/ProjectInsightForm';
 import ContactRequestsPage from './pages/contact-requests/ContactRequestsPage';
 import PublicationPage from './pages/publication/PublicationPage';
-import Settings from './pages/Settings';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
 
@@ -44,7 +43,6 @@ function App() {
             <Route path="/system-components" element={<SystemComponentsPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/publication" element={<PublicationPage />} />
-            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         ) : (

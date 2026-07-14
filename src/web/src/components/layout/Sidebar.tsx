@@ -5,25 +5,20 @@ import { Icon } from '../ui/Icon';
 const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/' },
   { key: 'products', label: 'Produkte', icon: 'box', path: '/products' },
-  { key: 'product-form', label: 'Add Product', icon: 'plus', path: '/products/new' },
   { key: 'manufacturers', label: 'Hersteller', icon: 'factory', path: '/manufacturers' },
   { key: 'project-insights', label: 'Projekt-Einblicke', icon: 'image', path: '/project-insights' },
   { key: 'offers', label: 'Angebote', icon: 'tag', path: '/offers' },
-  { key: 'offer-form', label: 'Angebot erstellen', icon: 'plus', path: '/offers/new' },
   { key: 'contact-requests', label: 'Kontaktanfragen', icon: 'mail', path: '/contact-requests' },
   { key: 'system-components', label: 'Systemkomponenten', icon: 'layers', path: '/system-components' },
   { key: 'services', label: 'Inklusivleistungen', icon: 'check', path: '/services' },
   { key: 'publication', label: 'Veröffentlichung', icon: 'globe', path: '/publication' },
-  { key: 'settings', label: 'Einstellungen', icon: 'settings', path: '/settings' },
 ];
 
 function isActive(path: string, pathname: string) {
   if (path === '/') return pathname === '/';
-  if (path === '/products') return pathname === '/products';
-  if (path === '/products/new') return pathname === '/products/new' || /^\/products\/.+\/edit$/.test(pathname);
+  if (path === '/products') return pathname === '/products' || pathname === '/products/new' || /^\/products\/.+\/edit$/.test(pathname);
   if (path === '/project-insights') return pathname === '/project-insights' || pathname.startsWith('/project-insights/');
-  if (path === '/offers') return pathname === '/offers' || /^\/offers\/.+\/preview$/.test(pathname);
-  if (path === '/offers/new') return pathname === '/offers/new' || /^\/offers\/.+\/edit$/.test(pathname);
+  if (path === '/offers') return pathname === '/offers' || pathname === '/offers/new' || /^\/offers\/.+\/(edit|preview)$/.test(pathname);
   if (path === '/contact-requests') return pathname.startsWith('/contact-requests');
   return pathname === path;
 }
