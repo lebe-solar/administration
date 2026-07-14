@@ -21,6 +21,9 @@
     ],
     "testMatch": [
       "<rootDir>/**/*.spec.ts"
+    ],
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(jose|jwks-rsa)/)"
     ]
   },
   "dependencies": {

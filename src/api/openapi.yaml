@@ -69,6 +69,10 @@ components:
         Logo:
           type: string
           nullable: true
+        image:
+          type: string
+          nullable: true
+          description: Real product photo, distinct from the manufacturer's Logo
         Status:
           type: string
           enum: [Active, Draft, Hidden]
@@ -84,25 +88,141 @@ components:
         updatedAt:
           type: string
           format: date-time
-    OfferItem:
+
+    SystemComponent:
       type: object
-      required: [id, name, quantity, price, descriptionLines]
+      description: Reusable technical component template (Systemkomponenten) — referenced by id into an offer's `systemComponents`.
+      required: [name]
       properties:
         id:
           type: string
+          example: sc-smart-meter
         name:
           type: string
-        quantity:
-          type: integer
-        price:
+        category:
+          type: string
+        unit:
+          type: string
+        internalPrice:
           type: number
+        publicLabel:
+          type: string
+        publicDescription:
+          type: string
+        visibility:
+          type: string
+          enum: [public, internal, hidden]
+        included:
+          type: boolean
+        optional:
+          type: boolean
+        updatedAt:
+          type: string
+          format: date-time
+
+    Service:
+      type: object
+      description: Reusable service line item template (Inklusivleistungen) — referenced by id into an offer's `includedServices`.
+      required: [name, descriptionLines]
+      properties:
+        id:
+          type: string
+          example: srv-beratung
+        name:
+          type: string
+        category:
+          type: string
         descriptionLines:
           type: array
           items:
             type: string
+        taxRelevantForCraftsmanWork:
+          type: boolean
+          description: "§35a EStG craftsman-labor tax relevance"
+        visibility:
+          type: string
+          enum: [public, internal, hidden]
+        included:
+          type: boolean
         updatedAt:
           type: string
           format: date-time
+
+    RequirementTemplate:
+      type: object
+      description: Reusable requirement / optional-additional-work template — referenced by id into an offer's `requirementsAndExclusions`.
+      required: [title]
+      properties:
+        id:
+          type: string
+          example: req-dachflaeche
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [requirement, optionalAdditionalWork, exclusion]
+        visibility:
+          type: string
+          enum: [public, internal, hidden]
+        priceType:
+          type: string
+          enum: [included, onRequest, fixed, startingFrom]
+        optionalPrice:
+          type: number
+          nullable: true
+
+    OfferMainProductRef:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+    OfferSystemComponentLine:
+      allOf:
+        - $ref: "#/components/schemas/SystemComponent"
+        - type: object
+          properties:
+            quantity:
+              type: integer
+    OfferIncludedServiceLine:
+      allOf:
+        - $ref: "#/components/schemas/Service"
+        - type: object
+          properties:
+            quantity:
+              type: integer
+            internalPrice:
+              type: number
+            publicDescription:
+              type: string
+    OfferRequirementLine:
+      $ref: "#/components/schemas/RequirementTemplate"
+    OfferEconomics:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        annualConsumptionKwh:
+          type: number
+        electricityPriceCentPerKwh:
+          type: number
+        specificYieldKwhPerKwp:
+          type: number
+        selfConsumptionRate:
+          type: number
+        autarkyRate:
+          type: number
+        feedInTariffCentPerKwh:
+          type: number
+        observationYears:
+          type: number
+        electricityPriceIncreasePercent:
+          type: number
+        disclaimer:
+          type: string
     Offer:
       type: object
       required: [id, title, status]
@@ -114,19 +234,20 @@ components:
           type: string
         subtitle:
           type: string
-        description:
+        status:
           type: string
-        conditions:
+          enum: [Active, Draft, Hidden]
+        targetCustomer:
           type: string
-        validUntil:
-          type: string
-          format: date
         designedFor:
           type: string
-        system:
+        shortDescription:
           type: string
-        price:
+        longDescription:
           type: string
+        priceType:
+          type: string
+          enum: [fixed, starting_from, indicative, on_request]
         priceAmount:
           type: number
           nullable: true
@@ -134,41 +255,365 @@ components:
           type: string
         priceLabel:
           type: string
-        link:
+        taxNote:
           type: string
+        validUntil:
+          type: string
+          format: date
+          nullable: true
         slug:
           type: string
-        previewImage:
+          nullable: true
+        publicUrl:
+          type: string
+        previewImageUrl:
           type: string
           nullable: true
-        products:
+        mainProducts:
           type: object
-          properties:
-            solarModuleId: { type: string, nullable: true }
-            solarModuleCount: { type: integer }
-            inverterId: { type: string, nullable: true }
-            inverterCount: { type: integer }
-            storageId: { type: string, nullable: true }
-            storageCount: { type: integer }
-            wallboxId: { type: string, nullable: true }
-            wallboxCount: { type: integer }
-            heatingSystemId: { type: string, nullable: true }
-            heatingSystemCount: { type: integer }
-        inclusive:
+          description: Keyed by slot (solarModule, inverter, storage, wallbox, heatingSystem), each an OfferMainProductRef.
+          additionalProperties:
+            $ref: "#/components/schemas/OfferMainProductRef"
+        systemComponents:
           type: array
           items:
-            $ref: "#/components/schemas/OfferItem"
+            $ref: "#/components/schemas/OfferSystemComponentLine"
+        includedServices:
+          type: array
+          items:
+            $ref: "#/components/schemas/OfferIncludedServiceLine"
+        requirementsAndExclusions:
+          type: array
+          items:
+            $ref: "#/components/schemas/OfferRequirementLine"
+        economics:
+          $ref: "#/components/schemas/OfferEconomics"
         allowChanges:
           type: boolean
-        status:
-          type: string
-          enum: [Active, Draft, Hidden]
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    ProjectInsightBadge:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+        visible:
+          type: boolean
+        sortOrder:
+          type: integer
+    ProjectInsight:
+      type: object
+      required: [title, locationLabel, shortDescription]
+      properties:
+        id:
+          type: string
+          example: PRJ-001
+        status:
+          type: string
+          enum: [Entwurf, Veröffentlicht, Archiviert]
+        title:
+          type: string
+        locationLabel:
+          type: string
+        buildingType:
+          type: string
+          enum: [Einfamilienhaus, Reihenhaus, Mehrfamilienhaus, Gewerbedach]
+        customerType:
+          type: string
+          enum: [Privatkunde, Gewerbekunde]
+        projectYear:
+          type: integer
+          nullable: true
+        projectStatus:
+          type: string
+        mainImage:
+          type: string
+          nullable: true
+        imageAlt:
+          type: string
+        galleryImages:
+          type: array
+          items:
+            type: string
+        badges:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectInsightBadge"
+        shortDescription:
+          type: string
+        internalNote:
+          type: string
+        visibility:
+          type: object
+          properties:
+            landingPage: { type: boolean }
+            aboutPage: { type: boolean }
+            projectOverview: { type: boolean }
+            offerDetails: { type: boolean }
+            internalOnly: { type: boolean }
+        featured:
+          type: boolean
+        sortOrder:
+          type: integer
+        publishedFrom:
+          type: string
+          nullable: true
+        publishedUntil:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Employee:
+      type: object
+      properties:
+        id:
+          type: string
+          example: emp-001
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        active:
+          type: boolean
+
+    ContactRequest:
+      type: object
+      description: >
+        A submitted contact/offer/simulation request. `anfrageSnapshot` and
+        `wirtschaftlichkeitsrechnung` vary in shape by `requestMode` and are stored
+        as submitted (never reconstructed from live catalog data).
+      required: [requestMode, kunde, consent]
+      properties:
+        id:
+          type: string
+          example: REQ-0001
+        schemaVersion:
+          type: string
+        status:
+          type: string
+          enum: [Neu, Gelesen, "In Bearbeitung", To-do, Beantwortet, Erledigt, Archiviert, Papierkorb]
+        inquiryType:
+          type: string
+        inquiryTypeKey:
+          type: string
+        requestMode:
+          type: string
+          enum: [generalContact, freeConsultation, simulationIndividual, simulationPackage, contactPackage, offerPackage, productQuestion, knowledgeQuestion]
+        kunde:
+          type: object
+          required: [name, email]
+          properties:
+            name: { type: string }
+            email: { type: string }
+            phone: { type: string }
+            postalCode: { type: string }
+            city: { type: string }
+            street: { type: string }
+            preferredContactTime: { type: string }
+        additionalCustomerInputs:
+          type: object
+        message:
+          type: string
+        anfrageweg:
+          type: object
+          properties:
+            source: { type: string }
+            sourceUrl: { type: string }
+            referrer: { type: string }
+            entryPointLabel: { type: string }
+            ctaLabel: { type: string }
+            submittedAt: { type: string, format: date-time }
+        anfrageSnapshot:
+          type: object
+          additionalProperties: true
+        wirtschaftlichkeitsrechnung:
+          type: object
+          nullable: true
+          additionalProperties: true
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              type: { type: string }
+              fileName: { type: string }
+              fileUrl: { type: string }
+              mimeType: { type: string }
+              uploadedAt: { type: string, format: date-time }
+        consent:
+          type: object
+          required: [privacyAccepted]
+          properties:
+            privacyAccepted: { type: boolean }
+            privacyAcceptedAt: { type: string, format: date-time }
+            privacyVersion: { type: string }
+        metainformationen:
+          type: object
+          properties:
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+            submittedAt: { type: string, format: date-time }
+            userAgent: { type: string }
+            deviceType: { type: string }
+            locale: { type: string }
+        admin:
+          type: object
+          properties:
+            assignedTo:
+              type: object
+              nullable: true
+              properties:
+                employeeId: { type: string }
+                name: { type: string }
+                email: { type: string }
+                role: { type: string }
+                assignedAt: { type: string, format: date-time }
+                assignedBy: { type: string }
+            todo:
+              type: object
+              nullable: true
+              properties:
+                dueDate: { type: string }
+                note: { type: string }
+            internalNotes:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: string }
+                  text: { type: string }
+                  authorName: { type: string }
+                  createdAt: { type: string, format: date-time }
+            activityLog:
+              type: array
+              items:
+                type: object
+                properties:
+                  id: { type: string }
+                  action: { type: string }
+                  actorName: { type: string }
+                  createdAt: { type: string, format: date-time }
+                  metadata: { type: string }
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PublicContentChange:
+      type: object
+      properties:
+        id:
+          type: string
+        entityType:
+          type: string
+          enum: [product, manufacturer, offer, projectInsight]
+        entityId:
+          type: string
+        entityTitle:
+          type: string
+        changeType:
+          type: string
+          enum: [published, updated, hidden, archived, deleted]
+        reason:
+          type: string
+        changedBy:
+          type: string
+        status:
+          type: string
+          enum: [pending, publishing, published]
+        changedAt:
+          type: string
+          format: date-time
+        deploymentId:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+    PublicWebClientDeployment:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [queued, running, success, failed]
+        triggerType:
+          type: string
+          enum: [manual, pendingChanges]
+        reason:
+          type: string
+        triggeredBy:
+          type: string
+        triggeredAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        durationMs:
+          type: integer
+        gitRef:
+          type: string
+        githubWorkflowId:
+          type: string
+        githubRunId:
+          type: string
+        githubRunUrl:
+          type: string
+        errorMessage:
+          type: string
+        affectedChanges:
+          type: array
+          items:
+            type: object
+            properties:
+              changeId: { type: string }
+              entityType: { type: string }
+              entityId: { type: string }
+              entityTitle: { type: string }
+              reason: { type: string }
+    PublicationOverview:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [upToDate, pending, publishing, failed]
+        hasPendingChanges:
+          type: boolean
+        pendingChanges:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicContentChange"
+        latestDeployment:
+          $ref: "#/components/schemas/PublicWebClientDeployment"
+          nullable: true
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicWebClientDeployment"
+
     UploadResult:
       type: object
       properties:
@@ -347,7 +792,7 @@ paths:
 
   /offers:
     get:
-      summary: List offers
+      summary: List offers (each row includes derived `calculatedSystem` and merged `economics`)
       parameters:
         - in: query
           name: status
@@ -427,9 +872,9 @@ paths:
         "201":
           description: Created
 
-  /offer-components:
+  /system-components:
     get:
-      summary: List reusable offer service components (Leistungspositionen)
+      summary: List reusable system component templates (Systemkomponenten)
       responses:
         "200":
           description: Success
@@ -438,56 +883,421 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/OfferItem"
+                  $ref: "#/components/schemas/SystemComponent"
     post:
-      summary: Create a reusable offer component
+      summary: Create a system component template
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OfferItem"
+              $ref: "#/components/schemas/SystemComponent"
       responses:
         "201":
           description: Created
         "422":
           description: Validation error
 
-  /offer-components/{id}:
+  /system-components/{id}:
     parameters:
       - $ref: "#/components/parameters/id"
     get:
-      summary: Get a reusable offer component
+      summary: Get a system component template
       responses:
         "200":
           description: Success
         "404":
           description: Not found
     put:
-      summary: Update a reusable offer component
+      summary: Update a system component template
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OfferItem"
+              $ref: "#/components/schemas/SystemComponent"
       responses:
         "200":
           description: Success
         "422":
           description: Validation error
     delete:
-      summary: Delete a reusable offer component
+      summary: Delete a system component template
       responses:
         "204":
           description: Deleted
 
-  /offer-components/{id}/duplicate:
-    parameters:
-      - $ref: "#/components/parameters/id"
+  /services:
+    get:
+      summary: List reusable service line item templates (Inklusivleistungen)
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
     post:
-      summary: Duplicate a reusable offer component
+      summary: Create a service template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Service"
       responses:
         "201":
           description: Created
+        "422":
+          description: Validation error
+
+  /services/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a service template
+      responses:
+        "200":
+          description: Success
+        "404":
+          description: Not found
+    put:
+      summary: Update a service template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Service"
+      responses:
+        "200":
+          description: Success
+        "422":
+          description: Validation error
+    delete:
+      summary: Delete a service template
+      responses:
+        "204":
+          description: Deleted
+
+  /services/{id}/duplicate:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    post:
+      summary: Duplicate a service template
+      responses:
+        "201":
+          description: Created
+
+  /requirement-templates:
+    get:
+      summary: List reusable requirement / optional-additional-work templates
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RequirementTemplate"
+    post:
+      summary: Create a requirement template
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequirementTemplate"
+      responses:
+        "201":
+          description: Created
+        "422":
+          description: Validation error
+
+  /requirement-templates/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    delete:
+      summary: Delete a requirement template
+      responses:
+        "204":
+          description: Deleted
+
+  /project-insights:
+    get:
+      summary: List project insight case studies (Projekt-Einblicke)
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: buildingType
+          schema: { type: string }
+        - in: query
+          name: customerType
+          schema: { type: string }
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectInsight"
+    post:
+      summary: Create a project insight
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectInsight"
+      responses:
+        "201":
+          description: Created
+        "422":
+          description: Validation error
+
+  /project-insights/next-id:
+    get:
+      summary: Generate the next auto-numbered project insight id
+      responses:
+        "200":
+          description: Success
+
+  /project-insights/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a project insight
+      responses:
+        "200":
+          description: Success
+        "404":
+          description: Not found
+    put:
+      summary: Update a project insight
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectInsight"
+      responses:
+        "200":
+          description: Success
+        "422":
+          description: Validation error
+    delete:
+      summary: Delete a project insight
+      responses:
+        "204":
+          description: Deleted
+
+  /project-insights/{id}/duplicate:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    post:
+      summary: Duplicate a project insight as a new Entwurf
+      responses:
+        "201":
+          description: Created
+
+  /project-insights/{id}/archive:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    patch:
+      summary: Archive a project insight
+      responses:
+        "200":
+          description: Success
+        "404":
+          description: Not found
+
+  /contact-requests:
+    post:
+      summary: Submit a contact/offer/simulation request (unauthenticated — the public site's contact form)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+        "422":
+          description: Validation error
+    get:
+      summary: List contact requests (admin)
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string }
+        - in: query
+          name: requestMode
+          schema: { type: string }
+        - in: query
+          name: assignedTo
+          schema: { type: string }
+        - in: query
+          name: q
+          schema: { type: string }
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContactRequest"
+
+  /contact-requests/{id}:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    get:
+      summary: Get a contact request (admin)
+      responses:
+        "200":
+          description: Success
+        "404":
+          description: Not found
+
+  /contact-requests/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    patch:
+      summary: Change a contact request's status
+      responses:
+        "200":
+          description: Success
+        "422":
+          description: Invalid status
+
+  /contact-requests/{id}/assign:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    patch:
+      summary: Assign a contact request to an active employee
+      responses:
+        "200":
+          description: Success
+        "422":
+          description: Employee not found or inactive
+
+  /contact-requests/{id}/notes:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    post:
+      summary: Add an internal note to a contact request
+      responses:
+        "200":
+          description: Success
+        "422":
+          description: Note text required
+
+  /contact-requests/{id}/archive:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    patch:
+      summary: Archive a contact request
+      responses:
+        "200":
+          description: Success
+
+  /contact-requests/{id}/trash:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    patch:
+      summary: Move a contact request to the trash
+      responses:
+        "200":
+          description: Success
+
+  /employees:
+    get:
+      summary: List active employees (assignment dropdown)
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Employee"
+
+  /admin/publication/overview:
+    get:
+      summary: Publication status overview — pending changes and latest/history deployments
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicationOverview"
+
+  /admin/publication/deployments:
+    get:
+      summary: List recent web client deployments
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, default: 10, minimum: 1, maximum: 50 }
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PublicWebClientDeployment"
+
+  /admin/publication/publish:
+    post:
+      summary: Trigger a public web client rebuild (dispatches a GitHub Actions workflow run)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: { type: string }
+                includePendingChanges: { type: boolean, default: true }
+      responses:
+        "201":
+          description: Deployment queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicWebClientDeployment"
+        "409":
+          description: A deployment is already queued or running
+        "502":
+          description: Deployment record created, but the GitHub Actions dispatch itself failed
+
+  /admin/publication/deployments/{id}/refresh-status:
+    parameters:
+      - $ref: "#/components/parameters/id"
+    post:
+      summary: Poll GitHub Actions for a queued/running deployment's current status
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicWebClientDeployment"
+        "404":
+          description: Deployment not found
 
   /uploads/pdf:
     post:

@@ -418,27 +418,65 @@ function contactRequestSeeds() {
     ];
 }
 
+// Each collection is gated on its own count rather than a single top-level guard. This
+// matters operationally: if an earlier boot inserted manufacturers/products successfully but
+// then failed partway through (e.g. a collection missing from the Cosmos DB provisioning),
+// a single "seed only if Products is empty" guard would wrongly consider the database fully
+// seeded forever after and never fill in the collections that never got their data. Checking
+// per collection makes this function idempotent and self-healing on every boot.
 export async function seedIfEmpty(): Promise<void> {
-    const productCount = await ProductModel.countDocuments().exec();
-    if (productCount > 0) {
-        return;
+    const seeded: Record<string, number> = {};
+
+    if (await ProductModel.countDocuments().exec() === 0) {
+        const manufacturerIdByOldNumber: Record<number, string> = {};
+        for (const [oldNumber, data] of Object.entries(manufacturerSeeds)) {
+            const created = await ManufacturerModel.create(data);
+            manufacturerIdByOldNumber[Number(oldNumber)] = String(created.id);
+        }
+        const products = productSeeds(manufacturerIdByOldNumber);
+        await ProductModel.insertMany(products);
+        seeded.manufacturers = Object.keys(manufacturerSeeds).length;
+        seeded.products = products.length;
     }
 
-    const manufacturerIdByOldNumber: Record<number, string> = {};
-    for (const [oldNumber, data] of Object.entries(manufacturerSeeds)) {
-        const created = await ManufacturerModel.create(data);
-        manufacturerIdByOldNumber[Number(oldNumber)] = String(created.id);
+    if (await SystemComponentModel.countDocuments().exec() === 0) {
+        await SystemComponentModel.insertMany(systemComponentSeeds);
+        seeded["system components"] = systemComponentSeeds.length;
     }
 
-    const products = productSeeds(manufacturerIdByOldNumber);
-    await ProductModel.insertMany(products);
-    await SystemComponentModel.insertMany(systemComponentSeeds.map(c => ({ ...c, _id: c._id })));
-    await ServiceModel.insertMany(serviceSeeds.map(s => ({ ...s, _id: s._id })));
-    await RequirementTemplateModel.insertMany(requirementTemplateSeeds.map(r => ({ ...r, _id: r._id })));
-    await OfferModel.insertMany(offerSeeds());
-    await ProjectInsightModel.insertMany(projectInsightSeeds);
-    await ContactRequestModel.insertMany(contactRequestSeeds());
-    await EmployeeModel.insertMany(employeeSeeds);
+    if (await ServiceModel.countDocuments().exec() === 0) {
+        await ServiceModel.insertMany(serviceSeeds);
+        seeded.services = serviceSeeds.length;
+    }
 
-    logger.info(`Seeded ${Object.keys(manufacturerSeeds).length} manufacturers, ${products.length} products, ${systemComponentSeeds.length} system components, ${serviceSeeds.length} services, ${requirementTemplateSeeds.length} requirement templates, ${offerSeeds().length} offers, ${projectInsightSeeds.length} project insights, ${contactRequestSeeds().length} contact requests, ${employeeSeeds.length} employees.`);
+    if (await RequirementTemplateModel.countDocuments().exec() === 0) {
+        await RequirementTemplateModel.insertMany(requirementTemplateSeeds);
+        seeded["requirement templates"] = requirementTemplateSeeds.length;
+    }
+
+    if (await OfferModel.countDocuments().exec() === 0) {
+        const offers = offerSeeds();
+        await OfferModel.insertMany(offers);
+        seeded.offers = offers.length;
+    }
+
+    if (await ProjectInsightModel.countDocuments().exec() === 0) {
+        await ProjectInsightModel.insertMany(projectInsightSeeds);
+        seeded["project insights"] = projectInsightSeeds.length;
+    }
+
+    if (await ContactRequestModel.countDocuments().exec() === 0) {
+        const requests = contactRequestSeeds();
+        await ContactRequestModel.insertMany(requests);
+        seeded["contact requests"] = requests.length;
+    }
+
+    if (await EmployeeModel.countDocuments().exec() === 0) {
+        await EmployeeModel.insertMany(employeeSeeds);
+        seeded.employees = employeeSeeds.length;
+    }
+
+    if (Object.keys(seeded).length) {
+        logger.info(`Seeded ${Object.entries(seeded).map(([k, n]) => `${n} ${k}`).join(", ")}.`);
+    }
 }

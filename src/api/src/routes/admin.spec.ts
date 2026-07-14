@@ -151,24 +151,55 @@ describe("offers", () => {
     });
 });
 
-describe("offer components (Leistungspositionen)", () => {
-    it("lists the 6 seeded components and supports full CRUD + duplicate", async () => {
-        const list = await request(app).get("/offer-components");
-        expect(list.body).toHaveLength(6);
+describe("system components (Systemkomponenten)", () => {
+    it("lists the 15 seeded components and supports full CRUD", async () => {
+        const list = await request(app).get("/system-components");
+        expect(list.status).toBe(200);
+        expect(list.body).toHaveLength(15);
 
-        const created = await request(app).post("/offer-components").send({
+        const created = await request(app).post("/system-components").send({ name: "Test Komponente" });
+        expect(created.status).toBe(201);
+
+        const updated = await request(app).put(`/system-components/${created.body.id}`).send({ name: "Test Komponente (geändert)" });
+        expect(updated.status).toBe(200);
+        expect(updated.body.name).toBe("Test Komponente (geändert)");
+
+        const del = await request(app).delete(`/system-components/${created.body.id}`);
+        expect(del.status).toBe(204);
+    });
+});
+
+describe("services (Inklusivleistungen)", () => {
+    it("lists the 17 seeded services and supports full CRUD + duplicate", async () => {
+        const list = await request(app).get("/services");
+        expect(list.status).toBe(200);
+        expect(list.body).toHaveLength(17);
+
+        const created = await request(app).post("/services").send({
             name: "Test Leistung",
-            quantity: 1,
-            price: 100,
             descriptionLines: ["Eine Testzeile"],
         });
         expect(created.status).toBe(201);
 
-        const dup = await request(app).post(`/offer-components/${created.body.id}/duplicate`);
+        const dup = await request(app).post(`/services/${created.body.id}/duplicate`);
         expect(dup.status).toBe(201);
         expect(dup.body.name).toContain("(Copy)");
 
-        const del = await request(app).delete(`/offer-components/${created.body.id}`);
+        const del = await request(app).delete(`/services/${created.body.id}`);
+        expect(del.status).toBe(204);
+    });
+});
+
+describe("requirement templates", () => {
+    it("lists the 17 seeded templates and supports create + delete", async () => {
+        const list = await request(app).get("/requirement-templates");
+        expect(list.status).toBe(200);
+        expect(list.body).toHaveLength(17);
+
+        const created = await request(app).post("/requirement-templates").send({ title: "Test Voraussetzung" });
+        expect(created.status).toBe(201);
+
+        const del = await request(app).delete(`/requirement-templates/${created.body.id}`);
         expect(del.status).toBe(204);
     });
 });

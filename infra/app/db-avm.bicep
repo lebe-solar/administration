@@ -12,6 +12,9 @@ param cosmosDatabaseName string = ''
 // yourself, that list becomes the *entire* indexing policy — omitting the wildcard here
 // would silently restrict indexing to `_id` only, breaking any query that sorts or filters
 // on another field (which is every list endpoint in this app).
+// Collection names and shard keys mirror the `mongoose.model(..., ..., "<CollectionName>")`
+// calls in src/api/src/models/*.ts exactly — every collection the API reads or writes to
+// must be listed here, or it never gets created and every request against it 500s.
 param collections array = [
   {
     name: 'Products'
@@ -29,7 +32,42 @@ param collections array = [
     shardKey: { keys: [ '_id' ] }
   }
   {
-    name: 'OfferComponents'
+    name: 'SystemComponents'
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
+    shardKey: { keys: [ '_id' ] }
+  }
+  {
+    name: 'Services'
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
+    shardKey: { keys: [ '_id' ] }
+  }
+  {
+    name: 'RequirementTemplates'
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
+    shardKey: { keys: [ '_id' ] }
+  }
+  {
+    name: 'ProjectInsights'
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
+    shardKey: { keys: [ '_id' ] }
+  }
+  {
+    name: 'ContactRequests'
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
+    shardKey: { keys: [ '_id' ] }
+  }
+  {
+    name: 'Employees'
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
+    shardKey: { keys: [ '_id' ] }
+  }
+  {
+    name: 'PublicContentChanges'
+    indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
+    shardKey: { keys: [ '_id' ] }
+  }
+  {
+    name: 'PublicWebClientDeployments'
     indexes: [ { key: { keys: [ '_id' ] } }, { key: { keys: [ '$**' ] } } ]
     shardKey: { keys: [ '_id' ] }
   }
