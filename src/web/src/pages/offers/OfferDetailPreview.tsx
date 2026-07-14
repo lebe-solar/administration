@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Chart from 'chart.js/auto';
 import { Topbar } from '../../components/layout/Topbar';
@@ -8,13 +7,13 @@ import { AdminButton } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { ProductCard } from '../../components/ui/ProductCard';
 import { useLayout } from '../../lib/layoutContext';
-import { useWindowWidth, fmtDate } from '../../lib/utils';
+import { useWindowWidth, fmtDate, euro } from '../../lib/utils';
 import { useToast } from '../../lib/ToastContext';
 import { offersApi } from '../../api/offers';
 import { productsApi } from '../../api/products';
 import { estimateSelfConsumptionAndAutarky } from '../../lib/offerCalc';
-import { mainComponentsList, displayPrice, priceTypeLabel } from './offerUtils';
-import type { Offer, Product } from '../../types';
+import { mainComponentsList, displayPrice, priceTypeLabel, computeEconomics } from './offerUtils';
+import type { Offer, Product, OfferRequirement } from '../../types';
 
 const FAQ = [
   { q: 'Wie läuft die Anfrage ab?', a: 'Nach Ihrer unverbindlichen Anfrage prüfen wir Dachfläche, Verbrauch, Zählerschrank und technische Voraussetzungen und melden uns persönlich zurück.' },
@@ -30,6 +29,13 @@ const PROCESS_STEPS = [
   { title: 'Montage & Elektroinstallation', text: 'Die Anlage wird montiert, verkabelt und technisch eingebunden.' },
   { title: 'Anmeldung & Inbetriebnahme', text: 'Wir begleiten die Anmeldung und erklären Ihnen Ihre Anlage nach der Inbetriebnahme.' },
 ];
+
+const OPTIONAL_WORK_PRICE_LABEL: Record<OfferRequirement['priceType'], (p?: number | null) => string> = {
+  included: () => 'inklusive',
+  onRequest: () => 'auf Anfrage',
+  fixed: p => (p != null ? euro(p) : 'Festpreis'),
+  startingFrom: p => (p != null ? `ab ${euro(p)}` : 'ab Preis'),
+};
 
 function DoughnutCard({ label, valuePct, canvasId, color }: { label: string; valuePct: number; canvasId: string; color: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -47,12 +53,12 @@ function DoughnutCard({ label, valuePct, canvasId, color }: { label: string; val
   }, [valuePct, color]);
 
   return (
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ position: 'relative', width: 150, height: 150, margin: '0 auto' }}>
+    <div style={{ minWidth: 0, background: 'var(--white)', borderRadius: 'var(--radius-md)', padding: 18, boxShadow: 'var(--shadow-card)', textAlign: 'center' }}>
+      <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', fontWeight: 700, marginBottom: 6 }}>{label}</div>
+      <div style={{ position: 'relative', width: 130, height: 130, margin: '0 auto' }}>
         <canvas id={canvasId} ref={ref} />
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700, color: 'var(--charcoal)' }}>{Math.round(valuePct)}%</div>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 700, color: 'var(--charcoal)' }}>{Math.round(valuePct)}%</div>
       </div>
-      <div style={{ marginTop: 10, fontSize: 13.5, fontWeight: 600, color: 'var(--charcoal)' }}>{label}</div>
     </div>
   );
 }
@@ -100,6 +106,11 @@ export default function OfferDetailPreview() {
     return costWithoutPv > 0 ? Math.min(100, (totalBenefit / costWithoutPv) * 100) : 0;
   }, [offer, sys, consumption, selfConsumptionRate]);
 
+  const yearlyBenefit = useMemo(() => {
+    if (!offer || !sys) return null;
+    return computeEconomics(sys.pvPowerKwp, { ...offer.economics, annualConsumptionKwh: consumption }, offer.priceAmount);
+  }, [offer, sys, consumption]);
+
   if (loading || !offer) {
     return (
       <div>
@@ -116,6 +127,22 @@ export default function OfferDetailPreview() {
   const optionalWork = offer.requirementsAndExclusions.filter(r => r.type === 'optionalAdditionalWork');
   const notify = () => pushToast('info', 'In der Vorschau werden keine echten Anfragen gesendet.');
 
+  const keyFacts: string[] = [];
+  if (sys && sys.moduleCount > 0) keyFacts.push(`${sys.moduleCount} Module`);
+  if (sys?.pvPowerKwp != null) keyFacts.push(`${sys.pvPowerKwp.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWp`);
+  if (sys?.storageCapacityKwh != null) keyFacts.push(`${sys.storageCapacityKwh.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWh Speicher`);
+  if (offer.mainProducts.wallbox) keyFacts.push('Wallbox inkl.');
+
+  const systemStats: { value: string; label: string }[] = [];
+  if (sys?.pvPowerKwp != null) systemStats.push({ value: `${sys.pvPowerKwp.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWp`, label: 'PV-Leistung' });
+  if (sys && sys.moduleCount > 0) systemStats.push({ value: String(sys.moduleCount), label: 'Solarmodule' });
+  if (sys?.moduleAreaM2 != null) systemStats.push({ value: `${sys.moduleAreaM2.toLocaleString('de-DE', { maximumFractionDigits: 1 })} m²`, label: 'Modulfläche' });
+  if (sys?.storageCapacityKwh != null) systemStats.push({ value: `${sys.storageCapacityKwh.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWh`, label: 'Speicher' });
+  if (sys?.inverterPowerKw != null) systemStats.push({ value: `${sys.inverterPowerKw.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kW`, label: 'Wechselrichter' });
+  if (sys?.wallboxPowerKw != null) systemStats.push({ value: `${sys.wallboxPowerKw.toLocaleString('de-DE', { maximumFractionDigits: 0 })} kW`, label: 'Wallbox' });
+
+  const two = w >= 900;
+
   return (
     <div>
       <Topbar title="Angebot-Vorschau" subtitle={`So sieht dieses Angebot für Kund:innen aus · ${offer.id}`} mobile={mobile} onMenu={onMenu}
@@ -125,178 +152,246 @@ export default function OfferDetailPreview() {
         </div>} />
 
       <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-raised)', overflow: 'hidden' }}>
-        {/* Hero */}
-        <div style={{ position: 'relative', height: w < 700 ? 220 : 340, background: 'var(--sage)' }}>
-          {offer.previewImageUrl
-            ? <img src={offer.previewImageUrl} alt={offer.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="image" size={44} color="rgba(255,255,255,0.7)" /></div>}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(60,60,59,0.65), rgba(60,60,59,0))' }} />
-          <div style={{ position: 'absolute', left: w < 700 ? 20 : 44, right: w < 700 ? 20 : 44, bottom: 24, color: '#fff' }}>
-            <h1 style={{ margin: 0, fontSize: w < 700 ? 26 : 38, fontWeight: 700, lineHeight: 1.1 }}>{offer.title}</h1>
-            <p style={{ margin: '8px 0 0', fontSize: w < 700 ? 15 : 18, color: '#f1f0ec' }}>{offer.subtitle}</p>
+        <div style={{ padding: w < 700 ? '22px 20px 0' : '28px 44px 0' }}>
+          {/* Hero */}
+          <div style={{ display: 'grid', gridTemplateColumns: two ? '1fr 1fr' : '1fr', gap: 44, alignItems: 'center', marginBottom: 48 }}>
+            <div style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', background: 'var(--sage)', boxShadow: 'var(--shadow-card)', aspectRatio: '4 / 3' }}>
+              {offer.previewImageUrl
+                ? <img src={offer.previewImageUrl} alt={offer.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="image" size={44} color="rgba(255,255,255,0.7)" /></div>}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <h1 style={{ margin: 0, fontSize: w < 700 ? 26 : 32, fontWeight: 700, lineHeight: 1.15 }}>{offer.title}</h1>
+              <p style={{ margin: 0, fontSize: 17, color: 'var(--sage)', fontWeight: 700, lineHeight: 1.3 }}>{offer.subtitle}</p>
+              {keyFacts.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {keyFacts.map(k => <span key={k} style={{ display: 'inline-flex', alignItems: 'center', padding: '6px 13px', borderRadius: 'var(--radius-pill)', background: 'rgba(159,178,161,0.20)', fontSize: 12.5, fontWeight: 700 }}>{k}</span>)}
+                </div>
+              )}
+              {offer.designedFor && (
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'var(--cream)', borderRadius: 'var(--radius-md)', padding: '14px 16px' }}>
+                  <span style={{ color: 'var(--sage)', fontSize: 18, lineHeight: 1.4 }}>✓</span>
+                  <span style={{ fontSize: 13.5, lineHeight: 1.5 }}>{offer.designedFor}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 18, marginTop: 4, flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: 12.5, color: 'var(--gray-mid)' }}>{priceTypeLabel(offer.priceType)}</div>
+                  <div style={{ fontSize: 26, fontWeight: 700, lineHeight: 1.05 }}>{displayPrice(offer)}</div>
+                </div>
+                {offer.validUntil && <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', paddingBottom: 6 }}>Gültig bis {fmtDate(offer.validUntil)}</div>}
+              </div>
+              {offer.taxNote && <div style={{ fontSize: 12, color: 'var(--gray-mid)', marginTop: -8 }}>{offer.taxNote}</div>}
+              <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+                <AdminButton variant="primary" icon="send" onClick={notify}>Paket unverbindlich anfragen</AdminButton>
+                <AdminButton variant="outline" icon="file" onClick={notify}>Als PDF</AdminButton>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div style={{ padding: w < 700 ? '22px 20px' : '32px 44px' }}>
-          {/* Key facts + price + CTA */}
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
-            {sys?.pvPowerKwp != null && <KeyFact label="PV-Leistung" value={`${sys.pvPowerKwp.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWp`} />}
-            {sys && sys.moduleCount > 0 && <KeyFact label="Module" value={`${sys.moduleCount}`} />}
-            {sys?.storageCapacityKwh != null && <KeyFact label="Speicher" value={`${sys.storageCapacityKwh.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWh`} />}
-            {offer.mainProducts.wallbox && <KeyFact label="Wallbox" value="inklusive" />}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 14, borderBottom: '1px solid var(--gray-400)', paddingBottom: 22, marginBottom: 26 }}>
-            <div>
-              <div style={{ fontSize: w < 700 ? 26 : 32, fontWeight: 700, color: 'var(--charcoal)' }}>{displayPrice(offer)}</div>
-              <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', marginTop: 4 }}>{priceTypeLabel(offer.priceType)}{offer.validUntil ? ` · gültig bis ${fmtDate(offer.validUntil)}` : ''}{offer.priceType !== 'fixed' ? ' · Final nach Dachprüfung und technischer Prüfung.' : ''}</div>
-              {offer.taxNote && <div style={{ fontSize: 12, color: 'var(--gray-mid)', marginTop: 2 }}>{offer.taxNote}</div>}
-            </div>
-            <AdminButton variant="primary" icon="send" onClick={notify}>Paket unverbindlich anfragen</AdminButton>
-          </div>
+        {/* USP banner */}
+        <div style={{ background: 'var(--charcoal)', textAlign: 'center', padding: '30px 24px' }}>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: 'var(--yellow)' }}>Alles drin. Alles transparent. Alles aus regionaler Hand.</h2>
+        </div>
 
-          {/* USP banner */}
-          <div style={{ textAlign: 'center', background: 'var(--cream)', borderRadius: 'var(--radius-md)', padding: '18px 20px', marginBottom: 30, fontSize: 16, fontWeight: 700, color: 'var(--charcoal)' }}>
-            Alles drin. Alles transparent. Alles aus regionaler Hand.
-          </div>
+        <div style={{ padding: w < 700 ? '0 20px 22px' : '0 44px 32px' }}>
+          {/* Wirtschaftlichkeit */}
+          {offer.economics.enabled && sys?.pvPowerKwp != null && (
+            <div style={{ background: 'var(--cream)', borderRadius: 'var(--radius-lg)', padding: '32px 34px 36px', marginTop: 52, marginBottom: 32 }}>
+              <p style={{ margin: '0 0 6px', fontSize: 15, color: 'var(--sage)', fontWeight: 700 }}>Ihre Wirtschaftlichkeit</p>
+              <h2 style={{ margin: '0 0 6px', fontSize: 22, fontWeight: 700 }}>Ihre Ersparnis auf einen Blick</h2>
+              <p style={{ margin: '0 0 22px', fontSize: 13.5, color: 'var(--gray-mid)', maxWidth: 640, lineHeight: 1.5 }}>Stellen Sie Ihren Stromverbrauch ein – PV-Leistung und Speichergröße stammen aus diesem Paket.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: two ? '300px 1fr' : '1fr', gap: 28, alignItems: 'start' }}>
+                <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 700 }}>Stromverbrauch</span>
+                      <span style={{ fontSize: 13.5, color: 'var(--sage)', fontWeight: 700 }}>{consumption.toLocaleString('de-DE')} kWh</span>
+                    </div>
+                    <input type="range" min={2000} max={15000} step={100} value={consumption} onChange={e => setConsumption(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--sage)' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <div style={{ flex: 1, background: 'var(--white)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
+                      <div style={{ fontSize: 11, color: 'var(--gray-mid)' }}>PV-Leistung</div>
+                      <div style={{ fontSize: 14, fontWeight: 700 }}>{sys.pvPowerKwp.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWp</div>
+                    </div>
+                    <div style={{ flex: 1, background: 'var(--white)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
+                      <div style={{ fontSize: 11, color: 'var(--gray-mid)' }}>Speicher</div>
+                      <div style={{ fontSize: 14, fontWeight: 700 }}>{sys.storageCapacityKwh != null ? `${sys.storageCapacityKwh.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWh` : 'kein Speicher'}</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--gray-mid)', marginTop: -8 }}>aus diesem Paket</div>
+                  {yearlyBenefit?.estimatedTotalBenefitPerYear != null && (
+                    <div style={{ background: 'var(--white)', borderRadius: 'var(--radius-md)', padding: '18px 20px', boxShadow: 'var(--shadow-card)' }}>
+                      <div style={{ fontSize: 12.5, color: 'var(--gray-mid)' }}>Gesamtvorteil pro Jahr</div>
+                      <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--charcoal)', lineHeight: 1.1 }}>{euro(yearlyBenefit.estimatedTotalBenefitPerYear)}</div>
+                      <div style={{ display: 'flex', gap: 22, marginTop: 12 }}>
+                        <div><div style={{ fontSize: 11, color: 'var(--gray-mid)' }}>Einsparung</div><div style={{ fontSize: 14, fontWeight: 700 }}>{euro(yearlyBenefit.estimatedSavingsPerYear)}</div></div>
+                        <div><div style={{ fontSize: 11, color: 'var(--gray-mid)' }}>Einspeisung</div><div style={{ fontSize: 14, fontWeight: 700 }}>{euro(yearlyBenefit.estimatedFeedInRevenuePerYear)}</div></div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: w < 560 ? '1fr' : 'repeat(3, 1fr)', gap: 18 }}>
+                  <DoughnutCard label="Eigenverbrauchsanteil" valuePct={selfConsumptionRate * 100} canvasId={`sc-${offer.id}`} color="#9fb2a1" />
+                  <DoughnutCard label="Autarkiegrad" valuePct={autarkyRate * 100} canvasId={`au-${offer.id}`} color="#3c3c3b" />
+                  <div style={{ minWidth: 0, background: 'var(--white)', borderRadius: 'var(--radius-md)', padding: 18, boxShadow: 'var(--shadow-card)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                    <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', fontWeight: 700, marginBottom: 10 }}>Ersparnis ggü. Netzbezug</div>
+                    <div style={{ fontSize: 34, fontWeight: 700, color: 'var(--sage)', lineHeight: 1 }}>{Math.round(savingsPct)}%</div>
+                  </div>
+                </div>
+              </div>
+              <p style={{ margin: '22px 0 0', fontSize: 11, color: 'var(--gray-mid)', lineHeight: 1.5 }}>{offer.economics.disclaimer}</p>
+            </div>
+          )}
 
           {/* Systemübersicht */}
-          <SectionHeading>Systemübersicht</SectionHeading>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 32 }}>
-            <ReadStat label="PV-Leistung" value={sys?.pvPowerKwp != null ? `${sys.pvPowerKwp.toLocaleString('de-DE', { maximumFractionDigits: 2 })} kWp` : '—'} />
-            <ReadStat label="Modulanzahl" value={sys && sys.moduleCount > 0 ? `${sys.moduleCount}` : '—'} />
-            <ReadStat label="Modulfläche" value={sys?.moduleAreaM2 != null ? `${sys.moduleAreaM2.toLocaleString('de-DE', { maximumFractionDigits: 1 })} m²` : '—'} />
-            <ReadStat label="Speichergröße" value={sys?.storageCapacityKwh != null ? `${sys.storageCapacityKwh.toLocaleString('de-DE', { maximumFractionDigits: 2 })} kWh` : '—'} />
-            <ReadStat label="Wechselrichterleistung" value={sys?.inverterPowerKw != null ? `${sys.inverterPowerKw.toLocaleString('de-DE', { maximumFractionDigits: 2 })} kW` : '—'} />
-          </div>
+          {systemStats.length > 0 && (
+            <>
+              <h2 style={{ margin: '0 0 20px', fontSize: 22, fontWeight: 700 }}>Ihre Anlage im Überblick</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, marginBottom: 48 }}>
+                {systemStats.map(s => (
+                  <div key={s.label} style={{ background: 'var(--cream)', borderRadius: 'var(--radius-lg)', padding: '18px 16px' }}>
+                    <div style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.05 }}>{s.value}</div>
+                    <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', marginTop: 4 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           {/* Hauptkomponenten */}
           {mainMini.length > 0 && (
-            <>
-              <SectionHeading>Hauptkomponenten</SectionHeading>
-              <div style={{ display: 'grid', gridTemplateColumns: w < 700 ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 32 }}>
+            <div style={{ marginBottom: 48 }}>
+              <SectionHeading n={1}>Hauptkomponenten</SectionHeading>
+              <p style={{ margin: '0 0 22px', fontSize: 13.5, color: 'var(--gray-mid)', paddingLeft: 42 }}>Die zentralen Markenprodukte Ihrer Anlage.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: w < 700 ? '1fr' : 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
                 {mainMini.map(({ slot, product, quantity }) => <ProductCard key={slot.key} product={product} quantity={quantity} />)}
               </div>
-            </>
+            </div>
           )}
 
           {/* Technik & Zubehör inklusive */}
           {techComponents.length > 0 && (
-            <>
-              <SectionHeading>Technik &amp; Zubehör inklusive</SectionHeading>
-              <div style={{ display: 'grid', gridTemplateColumns: w < 700 ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 32 }}>
+            <div style={{ marginBottom: 48 }}>
+              <SectionHeading n={2}>Technik &amp; Zubehör inklusive</SectionHeading>
+              <p style={{ margin: '0 0 22px', fontSize: 13.5, color: 'var(--gray-mid)', paddingLeft: 42 }}>Alle technischen Komponenten für einen sicheren, intelligenten Betrieb – ohne Aufpreis.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: w < 700 ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
                 {techComponents.map(c => (
-                  <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, border: '1px solid var(--gray-400)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
-                    <span style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(159,178,161,0.20)', color: 'var(--sage)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Icon name="layers" size={15} /></span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--charcoal)' }}>{c.publicLabel || c.name}</div>
-                      {c.publicDescription && <div style={{ fontSize: 12, color: 'var(--gray-mid)' }}>{c.publicDescription}</div>}
+                  <div key={c.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'var(--white)', border: '1px solid var(--gray-500)', borderRadius: 'var(--radius-md)', padding: '15px 17px' }}>
+                    <span style={{ width: 26, height: 26, flex: 'none', borderRadius: '50%', background: 'rgba(159,178,161,0.22)', color: 'var(--sage)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>✓</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13.5, fontWeight: 700 }}>{c.publicLabel || c.name}</div>
+                      {c.publicDescription && <div style={{ fontSize: 12, color: 'var(--gray-mid)', lineHeight: 1.5, marginTop: 2 }}>{c.publicDescription}</div>}
+                      {!c.included && <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--gray-mid)', marginTop: 2 }}>optional</div>}
                     </div>
-                    {!c.included && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--gray-mid)', flex: 'none' }}>optional</span>}
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           )}
+        </div>
 
-          {/* Leistungen inklusive */}
-          {publicServices.length > 0 && (
-            <>
-              <SectionHeading>Leistungen inklusive</SectionHeading>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 32 }}>
+        {/* Leistungen inklusive */}
+        {publicServices.length > 0 && (
+          <div style={{ background: 'var(--cream)' }}>
+            <div style={{ padding: w < 700 ? '40px 20px' : '48px 44px' }}>
+              <SectionHeading n={3}>Leistungen inklusive</SectionHeading>
+              <p style={{ margin: '0 0 22px', fontSize: 13.5, color: 'var(--gray-mid)', paddingLeft: 42 }}>Von der Planung bis zur Einweisung – alles aus einer Hand.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: two ? '1fr 1fr' : '1fr', gap: '12px 40px' }}>
                 {publicServices.map(s => (
-                  <div key={s.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                    <span style={{ width: 26, height: 26, borderRadius: '50%', background: 'rgba(31,138,91,0.14)', color: '#1f8a5b', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flex: 'none', marginTop: 2 }}><Icon name="check" size={15} /></span>
-                    <div>
-                      <div style={{ fontSize: 15.5, fontWeight: 600, color: 'var(--charcoal)' }}>{s.name}{s.quantity > 1 ? ` (${s.quantity}×)` : ''}</div>
-                      {s.descriptionLines.filter(l => l.trim()).map((l, j) => <div key={j} style={{ fontSize: 13.5, color: 'var(--gray-mid)', lineHeight: 1.5 }}>{l}</div>)}
+                  <div key={s.id} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '10px 0', borderBottom: '1px solid var(--gray-500)' }}>
+                    <span style={{ width: 24, height: 24, flex: 'none', borderRadius: '50%', background: 'var(--sage)', color: 'var(--white)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 2 }}>✓</span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700 }}>{s.name}{s.quantity > 1 ? ` (${s.quantity}×)` : ''}</div>
+                      {s.descriptionLines.filter(l => l.trim()).map((l, j) => <div key={j} style={{ fontSize: 12.5, color: 'var(--gray-mid)', lineHeight: 1.5, marginTop: 2 }}>{l}</div>)}
                     </div>
                   </div>
                 ))}
               </div>
-            </>
-          )}
+            </div>
+          </div>
+        )}
 
+        <div style={{ padding: w < 700 ? '40px 20px 0' : '48px 44px 0' }}>
           {/* Voraussetzungen & Zusatzarbeiten */}
           {(requirements.length > 0 || optionalWork.length > 0) && (
-            <>
-              <SectionHeading>Voraussetzungen &amp; mögliche Zusatzarbeiten</SectionHeading>
-              <p style={{ margin: '0 0 16px', fontSize: 13.5, color: 'var(--charcoal)', background: 'var(--cream)', padding: '10px 14px', borderRadius: 'var(--radius-sm)' }}>Falls Zusatzarbeiten notwendig sind, werden diese vorab transparent besprochen und separat angeboten.</p>
-              <div style={{ display: 'grid', gridTemplateColumns: w < 700 ? '1fr' : '1fr 1fr', gap: 24, marginBottom: 32 }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Voraussetzungen</div>
-                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {requirements.map(r => <li key={r.id} style={{ fontSize: 13.5, color: 'var(--charcoal)' }}><strong>{r.title}</strong>{r.description ? ` — ${r.description}` : ''}</li>)}
-                  </ul>
-                </div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Mögliche Zusatzarbeiten nach Prüfung</div>
-                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {optionalWork.map(r => <li key={r.id} style={{ fontSize: 13.5, color: 'var(--charcoal)' }}><strong>{r.title}</strong>{r.description ? ` — ${r.description}` : ''}</li>)}
-                  </ul>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Wirtschaftlichkeit */}
-          {offer.economics.enabled && sys?.pvPowerKwp != null && (
-            <>
-              <SectionHeading>Ihre Wirtschaftlichkeit</SectionHeading>
-              <div style={{ display: 'grid', gridTemplateColumns: w < 700 ? '1fr' : '1fr 1fr', gap: 20, marginBottom: 12 }}>
-                <div style={{ minWidth: 0 }}>
-                  <Field label={`Jahresstromverbrauch: ${consumption.toLocaleString('de-DE')} kWh`}>
-                    <input type="range" min={1500} max={12000} step={100} value={consumption} onChange={e => setConsumption(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--sage)' }} />
-                  </Field>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
-                    <ReadStat label="PV-Leistung (Paket)" value={`${sys.pvPowerKwp.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWp`} />
-                    <ReadStat label="Speicher (Paket)" value={sys.storageCapacityKwh != null ? `${sys.storageCapacityKwh.toLocaleString('de-DE', { maximumFractionDigits: 1 })} kWh` : 'kein Speicher'} />
+            <div style={{ marginBottom: 48 }}>
+              <SectionHeading n={4}>Voraussetzungen &amp; mögliche Zusatzarbeiten</SectionHeading>
+              <p style={{ margin: '0 0 22px', fontSize: 13.5, color: 'var(--gray-mid)', paddingLeft: 42, maxWidth: 700 }}>Falls Zusatzarbeiten notwendig sind, werden diese vorab transparent besprochen und separat angeboten.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: two ? '1fr 1fr' : '1fr', gap: 22 }}>
+                <div style={{ background: 'rgba(159,178,161,0.14)', border: '1px solid var(--sage)', borderRadius: 'var(--radius-lg)', padding: '24px 26px' }}>
+                  <h3 style={{ margin: '0 0 16px', fontSize: 17, fontWeight: 700 }}>Voraussetzungen</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+                    {requirements.map(r => (
+                      <div key={r.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                        <span style={{ width: 22, height: 22, flex: 'none', borderRadius: '50%', background: 'var(--sage)', color: 'var(--white)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, marginTop: 2 }}>✓</span>
+                        <div><div style={{ fontSize: 14, fontWeight: 700 }}>{r.title}</div>{r.description && <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', lineHeight: 1.5 }}>{r.description}</div>}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, minWidth: 0, alignItems: 'center' }}>
-                  <DoughnutCard label="Eigenverbrauchsanteil" valuePct={selfConsumptionRate * 100} canvasId={`sc-${offer.id}`} color="#9fb2a1" />
-                  <DoughnutCard label="Autarkiegrad" valuePct={autarkyRate * 100} canvasId={`au-${offer.id}`} color="#ffed00" />
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ width: 150, height: 150, borderRadius: '50%', background: 'var(--cream)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', flexDirection: 'column' }}>
-                      <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--charcoal)' }}>{Math.round(savingsPct)}%</div>
-                    </div>
-                    <div style={{ marginTop: 10, fontSize: 13.5, fontWeight: 600, color: 'var(--charcoal)' }}>Ersparnis ggü. Netzbezug</div>
+                <div style={{ background: 'var(--white)', border: '1px solid var(--gray-500)', borderRadius: 'var(--radius-lg)', padding: '24px 26px' }}>
+                  <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700 }}>Mögliche Zusatzarbeiten nach Prüfung</h3>
+                  <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--gray-mid)' }}>Nicht im Festpreis enthalten – nur bei Bedarf relevant.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+                    {optionalWork.map(r => (
+                      <div key={r.id} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                        <span style={{ width: 22, height: 22, flex: 'none', borderRadius: '50%', background: 'var(--gray-500)', color: 'var(--charcoal)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, marginTop: 2 }}>+</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                            <span style={{ fontSize: 14, fontWeight: 700 }}>{r.title}</span>
+                            <span style={{ fontSize: 11, color: 'var(--gray-mid)', whiteSpace: 'nowrap' }}>{OPTIONAL_WORK_PRICE_LABEL[r.priceType]?.(r.optionalPrice) ?? ''}</span>
+                          </div>
+                          {r.description && <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', lineHeight: 1.5 }}>{r.description}</div>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-              <p style={{ margin: '0 0 32px', fontSize: 12, color: 'var(--gray-mid)', lineHeight: 1.5, background: 'var(--gray-300)', padding: '10px 14px', borderRadius: 'var(--radius-sm)' }}>{offer.economics.disclaimer}</p>
-            </>
+            </div>
           )}
 
           {/* Ablauf */}
-          <SectionHeading>Ablauf nach Ihrer Anfrage</SectionHeading>
-          <div style={{ display: 'grid', gridTemplateColumns: w < 700 ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 32 }}>
-            {PROCESS_STEPS.map((s, i) => (
-              <div key={i}>
-                <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--charcoal)', color: 'var(--yellow)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, marginBottom: 8 }}>{i + 1}</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--charcoal)', marginBottom: 4 }}>{s.title}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', lineHeight: 1.5 }}>{s.text}</div>
-              </div>
-            ))}
+          <div style={{ marginBottom: 48 }}>
+            <h2 style={{ margin: '0 0 28px', fontSize: 22, fontWeight: 700, textAlign: 'center' }}>So geht es nach Ihrer Anfrage weiter</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: w < 700 ? '1fr 1fr' : 'repeat(5, 1fr)', gap: 16 }}>
+              {PROCESS_STEPS.map((s, i) => (
+                <div key={i}>
+                  <span style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--sage)', color: 'var(--white)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, marginBottom: 10 }}>{i + 1}</span>
+                  <div style={{ fontSize: 14, fontWeight: 700, marginTop: 10 }}>{s.title}</div>
+                  <div style={{ fontSize: 12.5, color: 'var(--gray-mid)', lineHeight: 1.5, marginTop: 4 }}>{s.text}</div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* FAQ */}
-          <SectionHeading>Häufige Fragen</SectionHeading>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 32 }}>
-            {FAQ.map((f, i) => (
-              <div key={i} style={{ border: '1px solid var(--gray-400)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
-                <button onClick={() => setOpenFaq(openFaq === i ? -1 : i)} style={{ width: '100%', textAlign: 'left', padding: '12px 14px', background: 'var(--white)', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14, fontWeight: 600, color: 'var(--charcoal)' }}>
-                  {f.q}<Icon name={openFaq === i ? 'x' : 'plus'} size={15} />
-                </button>
-                {openFaq === i && <div style={{ padding: '0 14px 14px', fontSize: 13.5, color: 'var(--gray-mid)', lineHeight: 1.55 }}>{f.a}</div>}
-              </div>
-            ))}
+          <div style={{ maxWidth: 820, margin: '0 auto 48px' }}>
+            <h2 style={{ margin: '0 0 22px', fontSize: 22, fontWeight: 700, textAlign: 'center' }}>Häufige Fragen</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {FAQ.map((f, i) => (
+                <div key={i} style={{ background: 'var(--white)', border: '1px solid var(--gray-500)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
+                  <button onClick={() => setOpenFaq(openFaq === i ? -1 : i)} style={{ width: '100%', textAlign: 'left', padding: '16px 20px', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 14, fontWeight: 700, color: 'var(--charcoal)' }}>
+                    {f.q}<span style={{ fontSize: 20, color: 'var(--sage)', flex: 'none' }}>{openFaq === i ? '×' : '+'}</span>
+                  </button>
+                  {openFaq === i && <div style={{ padding: '0 20px 18px', fontSize: 13.5, color: 'var(--gray-mid)', lineHeight: 1.55 }}>{f.a}</div>}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Final CTA */}
-          <div style={{ textAlign: 'center', background: 'var(--charcoal)', borderRadius: 'var(--radius-lg)', padding: '30px 24px' }}>
-            <div style={{ color: 'var(--yellow)', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Interesse an diesem Paket?</div>
-            <p style={{ color: '#e9e9e7', fontSize: 13.5, margin: '0 0 18px' }}>Unverbindlich. Persönlich. Transparent.</p>
-            <AdminButton variant="accent" icon="send" onClick={notify}>Paket unverbindlich anfragen</AdminButton>
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', background: 'var(--sage)', borderRadius: 'var(--radius-lg)', padding: '26px 34px' }}>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--charcoal)' }}>{offer.title} – {displayPrice(offer)}</div>
+                <div style={{ fontSize: 13.5, color: 'var(--charcoal)', opacity: 0.8 }}>Kostenlos &amp; unverbindlich anfragen. Wir melden uns innerhalb von 24 Stunden.</div>
+              </div>
+              <AdminButton variant="primary" icon="send" onClick={notify}>Paket unverbindlich anfragen</AdminButton>
+            </div>
           </div>
         </div>
       </div>
@@ -304,30 +399,11 @@ export default function OfferDetailPreview() {
   );
 }
 
-function SectionHeading({ children }: { children: string }) {
-  return <h2 style={{ margin: '0 0 16px', fontSize: 20, fontWeight: 700, color: 'var(--charcoal)' }}>{children}</h2>;
-}
-function KeyFact({ label, value }: { label: string; value: string }) {
+function SectionHeading({ n, children }: { n: number; children: string }) {
   return (
-    <div style={{ padding: '8px 14px', borderRadius: 'var(--radius-pill)', background: 'var(--cream)', display: 'flex', gap: 6, alignItems: 'baseline' }}>
-      <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--charcoal)' }}>{value}</span>
-      <span style={{ fontSize: 11.5, color: 'var(--gray-mid)' }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+      <span style={{ width: 30, height: 30, borderRadius: 'var(--radius-sm)', background: 'var(--charcoal)', color: 'var(--yellow)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12.5 }}>{n}</span>
+      <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>{children}</h2>
     </div>
-  );
-}
-function ReadStat({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ background: 'var(--gray-300)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
-      <div style={{ fontSize: 11.5, color: 'var(--gray-mid)' }}>{label}</div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--charcoal)', marginTop: 2 }}>{value}</div>
-    </div>
-  );
-}
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--charcoal)' }}>{label}</span>
-      {children}
-    </label>
   );
 }
