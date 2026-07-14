@@ -168,8 +168,13 @@ export default function ProductsPage() {
                       <td style={{ padding: '11px 10px', whiteSpace: 'nowrap', color: 'var(--charcoal)' }}>{p.Hersteller}</td>
                       <td style={{ padding: '11px 10px', whiteSpace: 'nowrap', color: 'var(--charcoal)' }}>{p.Power}{p.Unit ? <span style={{ color: 'var(--gray-mid)' }}> {p.Unit}</span> : ''}</td>
                       <td style={{ padding: '11px 10px' }}>
-                        {p.hasSpec
-                          ? <span title={p.Spezifikation ?? undefined} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#1f8a5b', fontSize: 12.5, fontWeight: 600 }}><Icon name="file" size={14} />PDF</span>
+                        {p.hasSpec && p.Spezifikation
+                          ? <a href={p.Spezifikation} target="_blank" rel="noreferrer" title={p.Spezifikation}
+                              onClick={e => e.stopPropagation()}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#1f8a5b', fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}
+                              onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'} onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}>
+                              <Icon name="file" size={14} />PDF
+                            </a>
                           : <span style={{ color: 'var(--gray-mid)', fontSize: 12.5 }}>—</span>}
                       </td>
                       <td style={{ padding: '11px 10px' }}><StatusBadge status={p.Status} /></td>

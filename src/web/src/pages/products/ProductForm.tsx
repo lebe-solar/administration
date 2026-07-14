@@ -10,13 +10,14 @@ import { StatusBadge } from '../../components/ui/Badges';
 import { PdfUpload } from '../../components/ui/PdfUpload';
 import { LogoUpload } from '../../components/ui/LogoUpload';
 import { ImageUpload } from '../../components/ui/ImageUpload';
+import { ProductCard } from '../../components/ui/ProductCard';
 import { useLayout } from '../../lib/layoutContext';
 import { useWindowWidth } from '../../lib/utils';
 import { useToast } from '../../lib/ToastContext';
 import { productsApi, categoriesApi } from '../../api/products';
 import { manufacturersApi } from '../../api/manufacturers';
 import { ApiError } from '../../api/client';
-import type { Category, Manufacturer, ProductStatus } from '../../types';
+import type { Category, Manufacturer, Product, ProductStatus } from '../../types';
 
 interface FormState {
   id: string; category: Category['key']; Header: string; Beschreibung: string;
@@ -102,6 +103,17 @@ export default function ProductForm() {
 
   const isSolar = f.category === 'Solarmodule';
   const selMan = manufacturers.find(m => String(m.id) === f.manufacturer_id);
+
+  const previewProduct: Product = {
+    id: f.id, category: f.category, Header: f.Header || 'Produktname', Beschreibung: f.Beschreibung,
+    Hersteller: f.Hersteller, manufacturer_id: f.manufacturer_id, Garantie: f.Garantie,
+    Power: f.Power === '' ? null : Number(f.Power), Unit: f.Unit,
+    Spezifikation: f.Spezifikation || null, hasSpec: !!f.Spezifikation, Logo: f.Logo, image: f.image || null,
+    Status: f.Status,
+    panelHeightMeters: f.panelHeightMeters === '' ? null : Number(f.panelHeightMeters),
+    panelWidthMeters: f.panelWidthMeters === '' ? null : Number(f.panelWidthMeters),
+    createdAt: '', updatedAt: '',
+  };
 
   async function submit(status: ProductStatus) {
     setSaving(true);
@@ -244,6 +256,11 @@ export default function ProductForm() {
             <SectionTitle icon="factory">Manufacturer Logo</SectionTitle>
             <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--gray-mid)' }}>Markenlogo des Herstellers, kein Produktfoto. Vom Hersteller übernommen, optional ersetzen.</p>
             <LogoUpload value={f.Logo} name={f.Hersteller || selMan?.name} onChange={v => set('Logo', v)} />
+          </Card>
+          <Card>
+            <SectionTitle icon="eye">Vorschau</SectionTitle>
+            <p style={{ margin: '0 0 12px', fontSize: 12.5, color: 'var(--gray-mid)' }}>So erscheint dieses Produkt für Kund:innen auf der Website.</p>
+            <ProductCard product={previewProduct} style={{ border: '1px solid var(--gray-300)' }} />
           </Card>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <AdminButton size="lg" variant="primary" icon="check" disabled={saving} onClick={() => submit('Active')} style={{ width: '100%' }}>Save Product</AdminButton>
